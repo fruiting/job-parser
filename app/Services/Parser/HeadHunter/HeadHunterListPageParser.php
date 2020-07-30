@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Services\Parser;
+namespace App\Services\Parser\HeadHunter;
 
+use App\Services\Parser\ParserListBaseAbstract;
 use PHPHtmlParser\Dom\Node\Collection;
 use PHPHtmlParser\Dom\Node\HtmlNode;
 use PHPHtmlParser\Exceptions\ChildNotFoundException;
@@ -9,13 +10,12 @@ use PHPHtmlParser\Exceptions\NotLoadedException;
 use Throwable;
 
 /**
- * Class HeadHunterParser describes logic of parsing hh.ru
+ * Class HeadHunterListPageParser describes parser logic for hh.ru vacancies list page
  *
- * @package App\Services\Parser
+ * @package App\Services\Parser\HeadHunter
  */
-class HeadHunterParser extends ParserBaseAbstract
+class HeadHunterListPageParser extends ParserListBaseAbstract
 {
-    /** @var string Web-site link to parse */
     public const LINK = 'https://hh.ru/search/vacancy?st=searchVacancy&text=PHP+%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82&search_field=name&area=1&salary=&currency_code=RUR&experience=doesNotMatter&order_by=relevance&search_period=&items_on_page=50&no_magic=true&L_save_area=true&from=suggest_post';
 
     /**
@@ -25,8 +25,8 @@ class HeadHunterParser extends ParserBaseAbstract
      */
     public function loadVacanciesCount(): void
     {
-        /** @var HtmlNode $html */
         try {
+            /** @var HtmlNode $html */
             $html = $this->dom->find('h1');
             $header = $html->getChildren()[0];
             preg_match('!\d+!', $header->text(), $matches);
@@ -66,27 +66,5 @@ class HeadHunterParser extends ParserBaseAbstract
         }
 
         $this->vacanciesUrls = array_unique($this->vacanciesUrls);
-    }
-
-    /**
-     * Parses specific vacancy info
-     *
-     * @return void
-     *
-     * @throws ChildNotFoundException
-     * @throws \PHPHtmlParser\Exceptions\CircularException
-     * @throws \PHPHtmlParser\Exceptions\ContentLengthException
-     * @throws \PHPHtmlParser\Exceptions\LogicalException
-     * @throws \PHPHtmlParser\Exceptions\StrictException
-     * @throws \Psr\Http\Client\ClientExceptionInterface
-     */
-    public function loadSpecificVacancyInfo(): void
-    {
-        foreach ($this->vacanciesUrls as $url) {
-            $dom = DomHelper::getInitedDom($url);
-            $dom->find('span');
-
-            //todo похоже придется декомпозировать на классы для списка и деталки
-        }
     }
 }

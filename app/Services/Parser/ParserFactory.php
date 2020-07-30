@@ -2,6 +2,8 @@
 
 namespace App\Services\Parser;
 
+use App\Services\Parser\HeadHunter\HeadHunterGeneralParser;
+
 /**
  * Class ParserFactory describes logic of getting parser class
  *
@@ -14,16 +16,13 @@ class ParserFactory
      *
      * @param string $site
      *
-     * @return ParserInterface
+     * @return GeneralParserInterface
      */
-    public static function getParser(string $site): ParserInterface
+    public static function getParser(string $site): GeneralParserInterface
     {
         switch ($site) {
-            case LinkedInParser::LINK:
-                $object = new LinkedInParser();
-                break;
             default:
-                $object = new HeadHunterParser();
+                $object = new HeadHunterGeneralParser();
                 break;
         }
 

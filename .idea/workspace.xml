@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="379e3079-c865-48dc-81ff-ae2cd145138a" name="Default Changelist" comment="" />
+    <list default="true" id="379e3079-c865-48dc-81ff-ae2cd145138a" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/commandlinetools/Laravel_30_07_2020__21_21.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/commandlinetools/schemas/frameworkDescriptionVersion1.1.4.xsd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Console/Commands/Parser.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Console/Commands/Parser.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Services/Parser/DomHelper.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Services/Parser/HeadHunterParser.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Services/Parser/LinkedInParser.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Services/Parser/ParserBaseAbstract.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Services/Parser/ParserFactory.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Services/Parser/ParserInterface.php" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -135,8 +146,9 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/app/Services/Parser" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -146,12 +158,18 @@
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="php.override.implement.member.chooser.php.doc" value="COPY_ALWAYS" />
   </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/app/Services/Parser" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="phpunit.xml" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <TestRunner scope="XML" />
       <method v="2" />
     </configuration>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -163,26 +181,31 @@
       <option name="presentableId" value="Default" />
       <updated>1596108185516</updated>
       <workItem from="1596108186994" duration="7488000" />
-      <workItem from="1596115683624" duration="3804000" />
+      <workItem from="1596115683624" duration="4545000" />
+      <workItem from="1596133215303" duration="5682000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="2" />
+    <option name="version" value="3" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="782" y="233" width="412" height="638" key="#com.intellij.ide.util.MemberChooser" timestamp="1596119171911">
+    <state x="782" y="233" width="412" height="638" key="#com.intellij.ide.util.MemberChooser" timestamp="1596136639334">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="782" y="233" width="412" height="638" key="#com.intellij.ide.util.MemberChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1596119171911" />
-    <state x="740" y="27" width="486" height="1053" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1596111561969">
+    <state x="782" y="233" width="412" height="638" key="#com.intellij.ide.util.MemberChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1596136639334" />
+    <state x="740" y="27" width="486" height="1053" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1596137062654">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="740" y="27" width="486" height="1053" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1596111561969" />
-    <state x="740" y="272" width="497" height="561" key="NewPhpClassDialog" timestamp="1596118797608">
+    <state x="740" y="27" width="486" height="1053" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1596137062654" />
+    <state x="726" y="310" width="524" height="484" key="#com.jetbrains.php.actions.copyPaste.importReferences.PhpImportReferencesDialog" timestamp="1596138309932">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="740" y="272" width="497" height="561" key="NewPhpClassDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1596118797608" />
+    <state x="726" y="310" width="524" height="484" key="#com.jetbrains.php.actions.copyPaste.importReferences.PhpImportReferencesDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1596138309932" />
+    <state x="740" y="272" width="633" height="561" key="NewPhpClassDialog" timestamp="1596137116049">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="740" y="272" width="633" height="561" key="NewPhpClassDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1596137116049" />
     <state x="684" y="291" width="618" height="522" key="find.popup" timestamp="1596109195169">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -191,9 +214,9 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="657" y="253" key="run.anything.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1596115687010" />
-    <state x="656" y="257" width="672" height="678" key="search.everywhere.popup" timestamp="1596118862628">
+    <state x="656" y="257" width="672" height="678" key="search.everywhere.popup" timestamp="1596138415581">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="656" y="257" width="672" height="678" key="search.everywhere.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1596118862628" />
+    <state x="656" y="257" width="672" height="678" key="search.everywhere.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1596138415581" />
   </component>
 </project>

@@ -5,31 +5,33 @@ namespace App\Services\Parser;
 use PHPHtmlParser\Dom;
 
 /**
- * Class DomHelper describes initiation of Dom object
+ * Class ParserDetailBaseAbstract describes parse logic of detail page
  *
  * @package App\Services\Parser
  */
-class DomHelper
+abstract class ParserDetailBaseAbstract implements DetailPageParserInterface
 {
+    /** @var Dom $dom Dom parser object */
+    protected $dom;
+
     /**
-     * Returns inited dom object by link
+     * Parses vacancy detail page
      *
-     * @param string $link
+     * @param string $link Vacancy page link
      *
-     * @return Dom
+     * @return void
      *
      * @throws \PHPHtmlParser\Exceptions\ChildNotFoundException
      * @throws \PHPHtmlParser\Exceptions\CircularException
      * @throws \PHPHtmlParser\Exceptions\ContentLengthException
      * @throws \PHPHtmlParser\Exceptions\LogicalException
+     * @throws \PHPHtmlParser\Exceptions\NotLoadedException
      * @throws \PHPHtmlParser\Exceptions\StrictException
      * @throws \Psr\Http\Client\ClientExceptionInterface
      */
-    public static function getInitedDom(string $link): Dom
+    public function execute(string $link): void
     {
-        $dom = new Dom;
-        $dom->loadFromUrl($link);
-
-        return $dom;
+        $this->dom = DomHelper::getInitedDom($link);
+        $this->loadVacancyInfo();
     }
 }
