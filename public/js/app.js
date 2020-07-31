@@ -1921,7 +1921,79 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-/* harmony default export */ __webpack_exports__["default"] = ({});
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+/* harmony default export */ __webpack_exports__["default"] = ({
+  data: function data() {
+    return {
+      /** @var {String[]} vacanciesTitles Array of vacancies titles to parse */
+      vacanciesTitles: [],
+
+      /** @var {String} vacanciesTitlesImploded Joined vacancies titles to parse */
+      vacanciesTitlesImploded: null,
+
+      /** @var {String} email Email to send link to report */
+      email: null,
+
+      /** @var {Integer} vacanciesCount Count of fields with vacancies titles */
+      vacanciesCount: 1,
+
+      /** @var {Integer} maxVacancies Max count of fields with vacancies titles */
+      maxVacancies: 3,
+
+      /** @var {Boolean} parsingInProcess Flag of working parser */
+      parsingInProcess: false
+    };
+  },
+  methods: {
+    /**
+     * Adds one more vacancy title field
+     *
+     * @return {VoidFunction}
+     */
+    addVacancy: function addVacancy() {
+      if (this.vacanciesCount !== this.maxVacancies) {
+        this.vacanciesCount++;
+      }
+    },
+
+    /**
+     * Sends request to backend to run parser
+     *
+     * @return {VoidFunction}
+     */
+    executeParser: function executeParser(e) {
+      var _this = this;
+
+      e.preventDefault();
+      axios.post('/api/v3/parser/execute').then(function () {
+        _this.vacanciesTitlesImploded = _this.vacanciesTitles.join('; ');
+        _this.parsingInProcess = true;
+      });
+    }
+  }
+});
 
 /***/ }),
 
@@ -37517,33 +37589,137 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _vm._m(0)
-}
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "container mt-5" }, [
-      _c("form", [
-        _c("div", { staticClass: "form-group" }, [
-          _c("div", [
-            _c("label", { attrs: { for: "title" } }, [_vm._v("Вакансия")]),
-            _vm._v(" "),
-            _c("input", {
-              staticClass: "form-control",
-              attrs: {
-                type: "text",
-                id: "title",
-                placeholder: "php-программист"
-              }
-            })
+  return _c("div", { staticClass: "container mt-5" }, [
+    _vm.parsingInProcess
+      ? _c("div", { staticClass: "d-flex align-items-center" }, [
+          _c("strong", [
+            _vm._v(
+              "\n            Проверяю вакансии по запросам: " +
+                _vm._s(_vm.vacanciesTitlesImploded) +
+                "..."
+            ),
+            _c("br"),
+            _vm._v(
+              "\n            На почту " +
+                _vm._s(_vm.email) +
+                " будет отправлена ссылка на отчет после завершения парсинга."
+            ),
+            _c("br"),
+            _vm._v(
+              "\n            Либо можно дождаться окончания процесса и ссылка появится на этом экране."
+            ),
+            _c("br"),
+            _vm._v("\n            Процесс займет некоторое время.\n        ")
+          ]),
+          _vm._v(" "),
+          _c("div", {
+            staticClass: "spinner-border ml-auto",
+            attrs: { role: "status", "aria-hidden": "true" }
+          })
+        ])
+      : _c("form", { on: { submit: _vm.executeParser } }, [
+          _c("div", { staticClass: "form-group" }, [
+            _c("div", { staticClass: "row" }, [
+              _c(
+                "div",
+                { staticClass: "col" },
+                [
+                  _c("p", [_vm._v("Вакансия")]),
+                  _vm._v(" "),
+                  _vm._l(_vm.vacanciesCount, function(item) {
+                    return _c("input", {
+                      directives: [
+                        {
+                          name: "model",
+                          rawName: "v-model",
+                          value: _vm.vacanciesTitles[item - 1],
+                          expression: "vacanciesTitles[item - 1]"
+                        }
+                      ],
+                      staticClass: "form-control mb-2",
+                      attrs: { type: "text", required: "" },
+                      domProps: { value: _vm.vacanciesTitles[item - 1] },
+                      on: {
+                        input: function($event) {
+                          if ($event.target.composing) {
+                            return
+                          }
+                          _vm.$set(
+                            _vm.vacanciesTitles,
+                            item - 1,
+                            $event.target.value
+                          )
+                        }
+                      }
+                    })
+                  })
+                ],
+                2
+              ),
+              _vm._v(" "),
+              _c("div", { staticClass: "col" }, [
+                _c("p", [_vm._v("Куда направить ссылку на отчет")]),
+                _vm._v(" "),
+                _c("input", {
+                  directives: [
+                    {
+                      name: "model",
+                      rawName: "v-model",
+                      value: _vm.email,
+                      expression: "email"
+                    }
+                  ],
+                  staticClass: "form-control",
+                  attrs: {
+                    type: "email",
+                    "aria-describedby": "emailHelp",
+                    placeholder: "Email",
+                    required: ""
+                  },
+                  domProps: { value: _vm.email },
+                  on: {
+                    input: function($event) {
+                      if ($event.target.composing) {
+                        return
+                      }
+                      _vm.email = $event.target.value
+                    }
+                  }
+                }),
+                _vm._v(" "),
+                _c(
+                  "button",
+                  {
+                    staticClass: "btn btn-primary mt-2",
+                    attrs: { type: "button" },
+                    on: { click: _vm.addVacancy }
+                  },
+                  [
+                    _vm._v(
+                      "\n                        Добавить вакансию\n                    "
+                    )
+                  ]
+                ),
+                _vm._v(" "),
+                _c(
+                  "button",
+                  {
+                    staticClass: "btn btn-success mt-2",
+                    attrs: { type: "submit" }
+                  },
+                  [
+                    _vm._v(
+                      "\n                        Запустить парсер\n                    "
+                    )
+                  ]
+                )
+              ])
+            ])
           ])
         ])
-      ])
-    ])
-  }
-]
+  ])
+}
+var staticRenderFns = []
 render._withStripped = true
 
 

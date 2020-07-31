@@ -17,3 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::prefix('v3/parser')->group(function () {
+    Route::post('/execute', 'ParserController@execute');
+});
