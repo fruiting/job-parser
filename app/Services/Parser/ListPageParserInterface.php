@@ -13,13 +13,6 @@ use PHPHtmlParser\Exceptions\NotLoadedException;
 interface ListPageParserInterface
 {
     /**
-     * Parses count of vacancies
-     *
-     * @return void
-     */
-    public function loadVacanciesCount(): void;
-
-    /**
      * Parses all vacancies for description
      *
      * @return void

@@ -36,14 +36,10 @@ abstract class ParserListBaseAbstract implements ListPageParserInterface
      * @throws \PHPHtmlParser\Exceptions\StrictException
      * @throws \Psr\Http\Client\ClientExceptionInterface
      */
-    public function execute(string $vacancyTitle, int $page = 0): void
+    public function execute(string $vacancyTitle, int $page): void
     {
         $this->dom = DomHelper::getInitedDom(static::LINK . $vacancyTitle . '&page=' . $page);
         $this->loadVacanciesInfo();
-
-        if ($page = 0) {
-            $this->loadVacanciesCount();
-        }
     }
 
     /**

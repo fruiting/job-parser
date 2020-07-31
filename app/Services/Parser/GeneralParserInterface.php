@@ -22,4 +22,24 @@ interface GeneralParserInterface
      * @return DetailPageParserInterface
      */
     public function getDetailPageParser(): DetailPageParserInterface;
+
+    /**
+     * Parses count of vacancies
+     *
+     * @param string $vacancyTitle
+     *
+     * @return int
+     *
+     * @throws \PHPHtmlParser\Exceptions\CircularException
+     */
+    public function getVacanciesCount (string $vacancyTitle): int;
+
+    /**
+     * Returns pages count
+     *
+     * @param string $vacanciesCount
+     *
+     * @return int
+     */
+    public function getPagesCount(string $vacanciesCount): int;
 }

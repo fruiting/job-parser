@@ -42,7 +42,7 @@ abstract class ParserDetailBaseAbstract implements DetailPageParserInterface
      *
      * @param string $link Vacancy page link
      *
-     * @return VacancyDto
+     * @return VacancyDto|null
      *
      * @throws ChildNotFoundException
      * @throws CircularException
@@ -52,7 +52,7 @@ abstract class ParserDetailBaseAbstract implements DetailPageParserInterface
      * @throws StrictException
      * @throws ClientExceptionInterface
      */
-    public function execute(string $link): VacancyDto
+    public function execute(string $link): ?VacancyDto
     {
         $this->dom = DomHelper::getInitedDom($link);
 

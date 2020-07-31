@@ -20,26 +20,6 @@ class HeadHunterListPageParser extends ParserListBaseAbstract
     public const LINK = 'https://hh.ru/search/vacancy?area=1&st=searchVacancy&fromSearch=true&text=';
 
     /**
-     * Parses count of vacancies
-     *
-     * @return void
-     */
-    public function loadVacanciesCount(): void
-    {
-        try {
-            /** @var HtmlNode $html */
-            $html = $this->dom->find('h1');
-            $header = $html->getChildren()[0];
-            preg_match('!\d+!', $header->text(), $matches);
-            $this->vacanciesCount = (int) $matches[0];
-        } catch (ChildNotFoundException | NotLoadedException | Throwable $exception) {
-            $this->vacanciesCount = 0;
-
-            //todo log it!
-        }
-    }
-
-    /**
      * Parses all vacancies for description
      *
      * @return void
@@ -49,6 +29,8 @@ class HeadHunterListPageParser extends ParserListBaseAbstract
      */
     public function loadVacanciesInfo(): void
     {
+        $this->vacanciesUrls = [];
+
         /** @var Collection|HtmlNode[] $blocks */
         $blocks = $this->dom->find('div.vacancy-serp-item');
         foreach ($blocks as $block) {
