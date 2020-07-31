@@ -27,7 +27,7 @@ class DomHelper
      */
     public static function getInitedDom(string $link): Dom
     {
-        $dom = new Dom;
+        $dom = new Dom();
         $dom->loadFromUrl($link);
 
         return $dom;

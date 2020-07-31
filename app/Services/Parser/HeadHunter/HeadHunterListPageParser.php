@@ -16,7 +16,8 @@ use Throwable;
  */
 class HeadHunterListPageParser extends ParserListBaseAbstract
 {
-    public const LINK = 'https://hh.ru/search/vacancy?st=searchVacancy&text=PHP+%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82&search_field=name&area=1&salary=&currency_code=RUR&experience=doesNotMatter&order_by=relevance&search_period=&items_on_page=50&no_magic=true&L_save_area=true&from=suggest_post';
+    /** @var string Link to parse */
+    public const LINK = 'https://hh.ru/search/vacancy?area=1&st=searchVacancy&fromSearch=true&text=';
 
     /**
      * Parses count of vacancies
@@ -49,16 +50,13 @@ class HeadHunterListPageParser extends ParserListBaseAbstract
     public function loadVacanciesInfo(): void
     {
         /** @var Collection|HtmlNode[] $blocks */
-        $blocks = $this->dom->find('div');
+        $blocks = $this->dom->find('div.vacancy-serp-item');
         foreach ($blocks as $block) {
             try {
-                if (preg_match('/vacancy-serp-item/', $block->getAttribute('class'))) {
-                    /** @var Collection|HtmlNode[] $collection */
-                    $collection = $block->find('a');
-                    if ($collection[0]
-                        && $collection[0]->getAttribute('data-qa') == 'vacancy-serp__vacancy-title') {
-                        $this->vacanciesUrls[] = $collection[0]->getAttribute('href');
-                    }
+                /** @var Collection|HtmlNode[] $collection */
+                $collection = $block->find('a');
+                if ($collection[0] && $collection[0]->getAttribute('data-qa') == 'vacancy-serp__vacancy-title') {
+                    $this->vacanciesUrls[] = $collection[0]->getAttribute('href');
                 }
             } catch (Throwable $exception) {
                 //todo log it!

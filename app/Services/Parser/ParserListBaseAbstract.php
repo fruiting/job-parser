@@ -2,7 +2,6 @@
 
 namespace App\Services\Parser;
 
-use App\Services\Parser\DomHelper;
 use PHPHtmlParser\Dom;
 
 /**
@@ -24,13 +23,27 @@ abstract class ParserListBaseAbstract implements ListPageParserInterface
     /**
      * Executes parser
      *
+     * @param string $vacancyTitle Title to search
+     * @param int $page Page to parse
+     *
      * @return void
+     *
+     * @throws \PHPHtmlParser\Exceptions\ChildNotFoundException
+     * @throws \PHPHtmlParser\Exceptions\CircularException
+     * @throws \PHPHtmlParser\Exceptions\ContentLengthException
+     * @throws \PHPHtmlParser\Exceptions\LogicalException
+     * @throws \PHPHtmlParser\Exceptions\NotLoadedException
+     * @throws \PHPHtmlParser\Exceptions\StrictException
+     * @throws \Psr\Http\Client\ClientExceptionInterface
      */
-    public function execute(): void
+    public function execute(string $vacancyTitle, int $page = 0): void
     {
-        $this->dom = DomHelper::getInitedDom(static::LINK);
-        $this->loadVacanciesCount();
+        $this->dom = DomHelper::getInitedDom(static::LINK . $vacancyTitle . '&page=' . $page);
         $this->loadVacanciesInfo();
+
+        if ($page = 0) {
+            $this->loadVacanciesCount();
+        }
     }
 
     /**

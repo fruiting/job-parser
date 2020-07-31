@@ -10,12 +10,44 @@ namespace App\Services\Parser;
 interface DetailPageParserInterface
 {
     /**
-     * Parses specific vacancy info
+     * Loads vacancy name
      *
      * @return void
      *
      * @throws \PHPHtmlParser\Exceptions\ChildNotFoundException
      * @throws \PHPHtmlParser\Exceptions\NotLoadedException
      */
-    public function loadVacancyInfo(): void;
+    public function loadVacancyName(): void;
+
+    /**
+     * Loads salary info
+     *
+     * @return void
+     *
+     * @throws \PHPHtmlParser\Exceptions\ChildNotFoundException
+     * @throws \PHPHtmlParser\Exceptions\CircularException
+     * @throws \PHPHtmlParser\Exceptions\NotLoadedException
+     */
+    public function loadSalary(): void;
+
+    /**
+     * Loads company name
+     *
+     * @return void
+     *
+     * @throws \PHPHtmlParser\Exceptions\ChildNotFoundException
+     * @throws \PHPHtmlParser\Exceptions\CircularException
+     * @throws \PHPHtmlParser\Exceptions\NotLoadedException
+     */
+    public function loadCompany(): void;
+
+    /**
+     * Loads requirement skills of vacancy
+     *
+     * @return void
+     *
+     * @throws \PHPHtmlParser\Exceptions\ChildNotFoundException
+     * @throws \PHPHtmlParser\Exceptions\NotLoadedException
+     */
+    public function loadSkills(): void;
 }

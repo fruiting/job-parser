@@ -17,7 +17,7 @@ class Parser extends Command
      *
      * @var string
      */
-    protected $signature = 'parser:run';
+    protected $signature = 'parser:run {vacancyTitle}';
 
     /**
      * The console command description.
@@ -40,7 +40,7 @@ class Parser extends Command
      */
     public function handle()
     {
-        (new ParserObject())->execute('');
+        (new ParserObject())->execute('', $this->argument('vacancyTitle'));
         return 0;
     }
 }
