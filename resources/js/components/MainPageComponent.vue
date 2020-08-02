@@ -78,7 +78,12 @@
             executeParser(e) {
                 e.preventDefault();
 
-                axios.post('/api/v3/parser/execute').then(() => {
+                const data = {
+                    resource: 'hh.ru',
+                    vacancies: this.vacanciesTitles,
+                    email: this.email
+                };
+                axios.post('/api/v3/parser/execute', data).then(() => {
                     this.vacanciesTitlesImploded = this.vacanciesTitles.join('; ');
                     this.parsingInProcess = true;
                 });

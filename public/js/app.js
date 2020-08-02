@@ -1987,7 +1987,12 @@ __webpack_require__.r(__webpack_exports__);
       var _this = this;
 
       e.preventDefault();
-      axios.post('/api/v3/parser/execute').then(function () {
+      var data = {
+        resource: 'hh.ru',
+        vacancies: this.vacanciesTitles,
+        email: this.email
+      };
+      axios.post('/api/v3/parser/execute', data).then(function () {
         _this.vacanciesTitlesImploded = _this.vacanciesTitles.join('; ');
         _this.parsingInProcess = true;
       });
