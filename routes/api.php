@@ -15,4 +15,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v3/parser')->group(function () {
     Route::post('/execute', 'ParserController@execute');
+    Route::get('/', 'ParserController@get');
 });

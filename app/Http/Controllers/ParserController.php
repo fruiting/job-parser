@@ -6,6 +6,7 @@ use App\Jobs\ParseJobWebSite;
 use App\Jobs\SendReportLink;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Redis;
 
 /**
  * Class ParserController describes logic of parsing vacancies
@@ -29,5 +30,10 @@ class ParserController extends Controller
 //        }
         dispatch(new SendReportLink(e(request()->get('email'))));
         return response()->json([], Response::HTTP_OK);
+    }
+
+    public function get()
+    {
+        return Redis::hgetall('romaspirin93@gmail.com:php-программист');
     }
 }

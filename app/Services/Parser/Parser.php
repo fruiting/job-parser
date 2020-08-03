@@ -4,6 +4,7 @@ namespace App\Services\Parser;
 
 use Generator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Redis;
 
 /**
  * Class ParserBase
@@ -55,6 +56,8 @@ final class Parser
      */
     public function execute(string $site, string $vacancyTitle): void
     {
+//        dd(Redis::hgetall('romaspirin93@gmail.com:' . $vacancyTitle));
+
         $factory = ParserFactory::getParser($site);
         $listPageParser = $factory->getListPageParser();
         $detailPageParser = $factory->getDetailPageParser();
@@ -64,9 +67,12 @@ final class Parser
 
         $generator = $this->parseDetails($pagesCount, $listPageParser, $detailPageParser, $vacancyTitle);
         foreach ($generator as $vacancies) {
+            $i = 0;
             foreach ($vacancies as $vacancy) {
-                //todo cache
+                /** @var VacancyDto $vacancy */
+                Redis::hset('romaspirin93@gmail.com:' . $vacancyTitle, $i++, $vacancy->toJson());
             }
-        }die;
+            die;
+        }
     }
 }
