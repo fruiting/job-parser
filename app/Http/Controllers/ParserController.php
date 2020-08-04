@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Jobs\ParseJobWebSite;
 use App\Jobs\SendReportLink;
+use App\Services\Parser\PopularSkills;
+use App\Services\Parser\Salary;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Redis;
@@ -34,6 +36,20 @@ class ParserController extends Controller
 
     public function get()
     {
-        return Redis::hgetall('romaspirin93@gmail.com:php-программист');
+        $vacanciesCount = Redis::hget('romaspirin93@gmail.com:php-программист', 'vacancies_count');
+        $vacancies = Redis::hgetall('romaspirin93@gmail.com:php-программист');
+        $popularSkills = PopularSkills::getOnlyPopular();
+        $salary = (new Salary())->loadSalary();
+
+        return [
+            'vacanciesCount' => $vacanciesCount,
+            'vacancies' => $vacancies,
+            'popularSkills' => $popularSkills,
+            'salaries' => [
+                'minSalary' => $salary->getMinSalary(),
+                'maxSalary' => $salary->getMaxSalary(),
+                'averageSalary' => $salary->getAverageSalary()
+            ]
+        ];
     }
 }

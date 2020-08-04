@@ -40,7 +40,7 @@ class Parser extends Command
      */
     public function handle()
     {
-        (new ParserObject())->execute('', $this->argument('vacancyTitle'));
+        (new ParserObject())->execute('', $this->argument('vacancyTitle'), 'romaspirin93@gmail.com');
         return 0;
     }
 }

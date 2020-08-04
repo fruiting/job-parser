@@ -2016,9 +2016,53 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
+      /** @var {String} vacancyName Вакансия */
+      vacancyName: 'Php-программист',
+
       /** @var {Integer} vacanciesCount */
       vacanciesCount: 0,
 
@@ -2028,17 +2072,29 @@ __webpack_require__.r(__webpack_exports__);
       /** @var {Float} maxSalary */
       maxSalary: 0,
 
+      /** @var {Float} averageSalary */
+      averageSalary: 0,
+
       /** @var {Mixed[]} vacancies Array of vacancies */
-      vacancies: []
+      vacancies: [],
+
+      /** @var {String[]} popularSkills Array of the most often required skills in vacancies */
+      popularSkills: []
     };
   },
   mounted: function mounted() {
     var _this = this;
 
     axios.get('/api/v3/parser').then(function (response) {
-      for (var index in response.data) {
-        _this.vacancies.push(JSON.parse(response.data[index]));
+      for (var index in response.data.vacancies) {
+        _this.vacancies.push(JSON.parse(response.data.vacancies[index]));
       }
+
+      _this.vacanciesCount = response.data.vacanciesCount;
+      _this.popularSkills = response.data.popularSkills;
+      _this.minSalary = response.data.salaries.minSalary;
+      _this.maxSalary = response.data.salaries.maxSalary;
+      _this.averageSalary = response.data.salaries.averageSalary;
     });
   }
 });
@@ -37789,7 +37845,106 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("div", { staticClass: "container mt-5" })
+  return _c("div", { staticClass: "container mt-5 mb-5" }, [
+    _c("h1", [_vm._v(_vm._s(_vm.vacancyName))]),
+    _vm._v(" "),
+    _c("div", { staticClass: "row mt-3" }, [
+      _c("div", { staticClass: "col-md-6" }, [
+        _c("h3", [_vm._v("Количество вакансий")]),
+        _vm._v(" "),
+        _c("p", [_vm._v(_vm._s(_vm.vacanciesCount))])
+      ]),
+      _vm._v(" "),
+      _c("div", { staticClass: "col-md-6" }, [
+        _c("h3", [_vm._v("З/п")]),
+        _vm._v("\n            Ср: " + _vm._s(_vm.averageSalary)),
+        _c("br"),
+        _vm._v("\n            Мин: " + _vm._s(_vm.minSalary)),
+        _c("br"),
+        _vm._v("\n            Макс: " + _vm._s(_vm.maxSalary) + "\n        ")
+      ])
+    ]),
+    _vm._v(" "),
+    _c("div", { staticClass: "mt-5" }, [
+      _c("h3", [_vm._v("Наиболее частые скиллы")]),
+      _vm._v(" "),
+      _c(
+        "ul",
+        { staticClass: "list-group" },
+        _vm._l(_vm.popularSkills, function(count, skill) {
+          return _c(
+            "li",
+            {
+              staticClass:
+                "list-group-item d-flex justify-content-between align-items-center"
+            },
+            [
+              _vm._v(
+                "\n                " + _vm._s(skill) + "\n                "
+              ),
+              _c("span", { staticClass: "badge badge-primary badge-pill" }, [
+                _vm._v(
+                  "\n                    " +
+                    _vm._s(count) +
+                    "\n                "
+                )
+              ])
+            ]
+          )
+        }),
+        0
+      )
+    ]),
+    _vm._v(" "),
+    _c(
+      "div",
+      { staticClass: "mt-5" },
+      [
+        _c("h3", [_vm._v("Список вакансий")]),
+        _vm._v(" "),
+        _vm._l(_vm.vacancies, function(vacancy) {
+          return _c("div", { staticClass: "card" }, [
+            _c(
+              "div",
+              { staticClass: "card-body" },
+              [
+                _c("h5", { staticClass: "card-title" }, [
+                  _vm._v(_vm._s(vacancy.vacancyName))
+                ]),
+                _vm._v(" "),
+                _c("h6", { staticClass: "card-subtitle mb-2 text-muted" }, [
+                  _vm._v(_vm._s(vacancy.companyName))
+                ]),
+                _vm._v(" "),
+                _c("p", { staticClass: "card-text" }, [
+                  _vm._v(_vm._s(vacancy.salaryText))
+                ]),
+                _vm._v(" "),
+                _vm._l(vacancy.skills, function(skill) {
+                  return _c("p", { staticClass: "btn btn-primary mr-2" }, [
+                    _vm._v(_vm._s(skill))
+                  ])
+                }),
+                _vm._v(" "),
+                _c("p", [
+                  _c(
+                    "a",
+                    {
+                      staticClass: "card-link",
+                      attrs: { href: vacancy.link, target: "_blank" }
+                    },
+                    [_vm._v("Вакансия")]
+                  )
+                ])
+              ],
+              2
+            )
+          ])
+        })
+      ],
+      2
+    )
+  ])
 }
 var staticRenderFns = []
 render._withStripped = true

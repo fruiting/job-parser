@@ -49,30 +49,34 @@ final class Parser
      *
      * @param string $site Site url
      * @param string $vacancyTitle Search by title
+     * @param string $email User email
      *
      * @return void
      *
      * @throws \PHPHtmlParser\Exceptions\CircularException
      */
-    public function execute(string $site, string $vacancyTitle): void
+    public function execute(string $site, string $vacancyTitle, string $email): void
     {
-//        dd(Redis::hgetall('romaspirin93@gmail.com:' . $vacancyTitle));
-
         $factory = ParserFactory::getParser($site);
         $listPageParser = $factory->getListPageParser();
         $detailPageParser = $factory->getDetailPageParser();
 
         $vacanciesCount = $factory->getVacanciesCount($vacancyTitle);
+        Redis::hset($email . ':' . $vacancyTitle, 'vacancies_count', $vacanciesCount);
+
         $pagesCount = $factory->getPagesCount($vacanciesCount);
 
         $generator = $this->parseDetails($pagesCount, $listPageParser, $detailPageParser, $vacancyTitle);
+        $page = 1;
         foreach ($generator as $vacancies) {
             $i = 0;
             foreach ($vacancies as $vacancy) {
                 /** @var VacancyDto $vacancy */
-                Redis::hset('romaspirin93@gmail.com:' . $vacancyTitle, $i++, $vacancy->toJson());
-            }
-            die;
+
+                Salary::addSalaries($vacancy->salaryRange);
+                PopularSkills::addSkills($vacancy->skills);
+                Redis::hset($email . ':' . $vacancyTitle . ':' . $page++, $i++, $vacancy->toJson());
+            }die;
         }
     }
 }
