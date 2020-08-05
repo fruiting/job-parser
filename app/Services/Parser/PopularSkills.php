@@ -17,26 +17,29 @@ class PopularSkills
     /**
      * Writes in redis vacancies skills
      *
+     * @param string $key Redis key
      * @param string[] $skills Array of skills in vacancy
      *
      * @return void
      */
-    public static function addSkills(array $skills): void
+    public static function addSkills(string $key, array $skills): void
     {
         foreach ($skills as $skill) {
-            $skillsCount = Redis::hget('romaspirin93@gmail.com:php-программист:skills', strtolower($skill));
-            Redis::hset('romaspirin93@gmail.com:php-программист:skills', strtolower($skill), ++$skillsCount);
+            $skillsCount = Redis::hget($key . ':skills', strtolower($skill));
+            Redis::hset($key . ':skills', strtolower($skill), ++$skillsCount);
         }
     }
 
     /**
      * Returns array of popular skills
      *
+     * @param string $key Redis key
+     *
      * @return int[]
      */
-    public static function getOnlyPopular(): array
+    public static function getOnlyPopular(string $key): array
     {
-        $skills = Redis::hgetall('romaspirin93@gmail.com:php-программист:skills');
+        $skills = Redis::hgetall($key . ':skills');
         return array_filter($skills, function (string $skill) {
             return $skill >= self::COUNT_TO_BE_POPULAR;
         });

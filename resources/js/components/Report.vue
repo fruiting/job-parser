@@ -29,27 +29,29 @@
 
         <div class="mt-5">
             <h3>Список вакансий</h3>
-            <div v-for="vacancy in vacancies" class="card">
-                <div class="card-body">
-                    <h5 class="card-title">{{ vacancy.vacancyName }}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">{{ vacancy.companyName }}</h6>
-                    <p class="card-text">{{ vacancy.salaryText }}</p>
-                    <p v-for="skill in vacancy.skills" class="btn btn-primary mr-2">{{ skill }}</p>
-                    <p>
-                        <a :href="vacancy.link" class="card-link" target="_blank">Вакансия</a>
-                    </p>
-                </div>
-            </div>
+            <vacancy v-for="vacancy in vacancies" :vacancy="vacancy"></vacancy>
+            <pagination v-if="vacanciesCount" :itemsCountOverall="vacanciesCount" :itemsCountPerPage="50"></pagination>
         </div>
     </div>
 </template>
 
 <script>
+    import functions from '../scripts/functions';
+
     export default {
         data() {
             return {
-                /** @var {String} vacancyName Вакансия */
-                vacancyName: 'Php-программист',
+                /** @var {Integer} userId */
+                userId: null,
+
+                /** @var {Integer} vacancyId */
+                vacancyId: null,
+
+                /** @var {Integer} page Vacancies list page number */
+                page: 1,
+
+                /** @var {String} vacancyName */
+                vacancyName: null,
 
                 /** @var {Integer} vacanciesCount */
                 vacanciesCount: 0,
@@ -72,17 +74,34 @@
         },
 
         mounted() {
-            axios.get('/api/v3/parser').then((response) => {
-                for (let index in response.data.vacancies) {
-                    this.vacancies.push(JSON.parse(response.data.vacancies[index]));
-                }
+            this.userId = functions.getParameterFromString(window.location.search, 'userId');
+            this.vacancyId = functions.getParameterFromString(window.location.search, 'vacancyId');
 
+            axios.get('/api/v3/parser/overall/' + this.userId + '/' + this.vacancyId).then((response) => {
                 this.vacanciesCount = response.data.vacanciesCount;
                 this.popularSkills = response.data.popularSkills;
                 this.minSalary = response.data.salaries.minSalary;
                 this.maxSalary = response.data.salaries.maxSalary;
                 this.averageSalary = response.data.salaries.averageSalary;
             });
+
+            this.renderVacanciesList();
+        },
+
+        methods: {
+            /**
+             * Makes request to backend to load vacancies and updates component model
+             *
+             * @return {VoidFunction}
+             */
+            renderVacanciesList() {
+                axios.get('/api/v3/parser/vacancies/' + this.userId + '/' + this.vacancyId + '/' + this.page)
+                    .then((response) => {
+                        for (let index in response.data) {
+                            this.vacancies.push(JSON.parse(response.data[index]));
+                        }
+                    });
+            }
         }
     }
 </script>

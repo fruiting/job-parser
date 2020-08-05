@@ -19,8 +19,12 @@ window.Vue = require('vue');
 // const files = require.context('./', true, /\.vue$/i)
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
-Vue.component('main-page-component', require('./components/MainPageComponent.vue').default);
-Vue.component('report-component', require('./components/ReportComponent.vue').default);
+import helpers from './scripts/functions';
+
+Vue.component('main-page', require('./components/MainPage.vue').default);
+Vue.component('report', require('./components/Report.vue').default);
+Vue.component('vacancy', require('./components/Vacancy.vue').default);
+Vue.component('pagination', require('./components/Pagination.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

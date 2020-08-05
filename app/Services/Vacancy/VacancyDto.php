@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Parser;
+namespace App\Services\Vacancy;
 
 use Illuminate\Support\Fluent;
 

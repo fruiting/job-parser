@@ -17,25 +17,28 @@ class Salary
     /**
      * Writes salaries in redis
      *
+     * @param string $key Redis key
      * @param float[] $salaries Array of salaries in vacancy
      *
      * @return void
      */
-    public static function addSalaries(array $salaries): void
+    public static function addSalaries(string $key, array $salaries): void
     {
         foreach ($salaries as $salary) {
-            Redis::lpush('romaspirin93@gmail.com:php-программист:salaries', $salary);
+            Redis::lpush($key . ':salaries', $salary);
         }
     }
 
     /**
      * Loads all salaries of vacancy into object
      *
+     * @param string $key Redis key
+     *
      * @return $this
      */
-    public function loadSalary(): self
+    public function loadSalary(string $key): self
     {
-        $this->salaries = Redis::lrange('romaspirin93@gmail.com:php-программист:salaries', 0, -1);
+        $this->salaries = Redis::lrange($key . ':salaries', 0, -1);
         return $this;
     }
 

@@ -2,9 +2,10 @@
 
 namespace App\Services\Parser;
 
+use App\Services\Vacancy\VacancyDto;
+use App\Services\Vacancy\VacancyRedis;
 use Generator;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Redis;
 
 /**
  * Class ParserBase
@@ -57,25 +58,29 @@ final class Parser
      */
     public function execute(string $site, string $vacancyTitle, string $email): void
     {
+        $key = $email . ':' . $vacancyTitle;
         $factory = ParserFactory::getParser($site);
         $listPageParser = $factory->getListPageParser();
         $detailPageParser = $factory->getDetailPageParser();
 
         $vacanciesCount = $factory->getVacanciesCount($vacancyTitle);
-        Redis::hset($email . ':' . $vacancyTitle, 'vacancies_count', $vacanciesCount);
+        VacancyRedis::saveVacanciesCount($key, $vacanciesCount);
 
         $pagesCount = $factory->getPagesCount($vacanciesCount);
-
         $generator = $this->parseDetails($pagesCount, $listPageParser, $detailPageParser, $vacancyTitle);
         $page = 1;
+
         foreach ($generator as $vacancies) {
             $i = 0;
             foreach ($vacancies as $vacancy) {
                 /** @var VacancyDto $vacancy */
 
-                Salary::addSalaries($vacancy->salaryRange);
-                PopularSkills::addSkills($vacancy->skills);
-                Redis::hset($email . ':' . $vacancyTitle . ':' . $page++, $i++, $vacancy->toJson());
+                Salary::addSalaries($key, $vacancy->salaryRange);
+                PopularSkills::addSkills($key, $vacancy->skills);
+                VacancyRedis::saveVacancy($key . ':' . $page, $i, $vacancy);
+
+                $page++;
+                $i++;
             }die;
         }
     }
