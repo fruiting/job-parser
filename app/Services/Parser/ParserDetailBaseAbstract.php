@@ -2,6 +2,7 @@
 
 namespace App\Services\Parser;
 
+use App\Services\Vacancy\VacancyDto;
 use PHPHtmlParser\Dom;
 use PHPHtmlParser\Exceptions\ChildNotFoundException;
 use PHPHtmlParser\Exceptions\CircularException;

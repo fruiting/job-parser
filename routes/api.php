@@ -16,5 +16,5 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v3/parser')->group(function () {
     Route::post('/execute', 'ParserController@execute');
     Route::get('/overall/{userId}/{vacancyId}', 'ParserController@getOverall');
-    Route::get('/vacancies/{userId}/{vacancyId}/{page}', 'ParserController@getVacancies');
+    Route::get('/vacancies/{userId}/{vacancyId}', 'ParserController@getVacancies');
 });

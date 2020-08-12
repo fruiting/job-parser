@@ -24,7 +24,6 @@ import helpers from './scripts/functions';
 Vue.component('main-page', require('./components/MainPage.vue').default);
 Vue.component('report', require('./components/Report.vue').default);
 Vue.component('vacancy', require('./components/Vacancy.vue').default);
-Vue.component('pagination', require('./components/Pagination.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

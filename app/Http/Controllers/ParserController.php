@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\ParseJobWebSite;
+use App\Jobs\ParseWebSiteJob;
 use App\Jobs\SendReportLink;
 use App\Models\User;
 use App\Models\Vacancy;
+use App\Services\Parser\HeadHunter\HeadHunterListPageParser;
 use App\Services\Parser\PopularSkills;
 use App\Services\Parser\Salary;
 use App\Services\Vacancy\VacancyRedis;
+use App\Services\Vacancy\VacancyUserRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
@@ -24,29 +26,31 @@ class ParserController extends Controller
      * Executes parser
      *
      * @return JsonResponse
-     *
-     * @api
      */
     public function execute(): JsonResponse
     {
         $email = e(request()->get('email'));
         $vacancies = request()->get('vacancies');
 
-        User::firstOrCreate(['email' => $email]);
+        $user = User::firstOrCreate(['email' => $email]);
 
         /** @var Collection|Vacancy[] $vacancies */
         $vacanciesCollection = Vacancy::whereIn('name', $vacancies)->get();
 
-        foreach ($vacancies as $vacancy) {
-            $vacancy = e($vacancy);
+        foreach ($vacancies as $key => $vacancyName) {
+            $vacancyName = e($vacancyName);
 
-            dispatch(new ParseJobWebSite(request()->get('resource'), $vacancy));
-            if ($vacanciesCollection->isEmpty())  {
-                Vacancy::create(['name' => $vacancy]);
+            $vacancyModel = $vacanciesCollection->first(function (Vacancy $vacancy) use ($vacancyName) {
+                return $vacancy->name == $vacancyName;
+            });
+            if (!$vacancyModel) {
+                $vacancyModel = Vacancy::create(['name' => $vacancyName]);
             }
+
+            ParseWebSiteJob::dispatch(request()->get('resource'), $vacancyModel, $user)->onQueue('vacancy-' . $key);
         }
 
-        dispatch(new SendReportLink($email));
+//        dispatch(new SendReportLink($email));
         return response()->json([], Response::HTTP_OK);
     }
 
@@ -60,12 +64,15 @@ class ParserController extends Controller
      */
     public function getOverall(int $userId, int $vacancyId): array
     {
-        $key = VacancyRedis::getRedisKeyForVacation($userId, $vacancyId);
+        $repository = (new VacancyUserRepository())->loadData($userId, $vacancyId);
+        $key = VacancyRedis::getRedisKeyForVacation($repository->getUser(), $repository->getVacancy());
         $vacanciesCount = VacancyRedis::getVacanciesCount($key);
         $popularSkills = PopularSkills::getOnlyPopular($key);
         $salary = (new Salary())->loadSalary($key);
 
         return [
+            'vacancyName' => $repository->getVacancy()->name,
+            'vacanciesListLink' => HeadHunterListPageParser::LINK . $repository->getVacancy()->name,
             'vacanciesCount' => $vacanciesCount,
             'popularSkills' => $popularSkills,
             'salaries' => [
@@ -81,13 +88,14 @@ class ParserController extends Controller
      *
      * @param int $userId
      * @param int $vacancyId
-     * @param int $page Page in redis
      *
      * @return string[]
      */
-    public function getVacancies(int $userId, int $vacancyId, int $page): array
+    public function getVacancies(int $userId, int $vacancyId): array
     {
-        $key = VacancyRedis::getRedisKeyForVacation($userId, $vacancyId);
-        return VacancyRedis::getFromHash($key . ':' . $page);
+        $repository = (new VacancyUserRepository())->loadData($userId, $vacancyId);
+        $key = VacancyRedis::getRedisKeyForVacation($repository->getUser(), $repository->getVacancy());
+        dd(VacancyRedis::getFromHash($key));
+        return VacancyRedis::getFromHash($key);
     }
 }

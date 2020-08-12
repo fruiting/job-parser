@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
+use App\Models\Vacancy;
 use App\Services\Parser\Parser as ParserObject;
 use Illuminate\Console\Command;
 
@@ -40,7 +42,7 @@ class Parser extends Command
      */
     public function handle()
     {
-        (new ParserObject())->execute('', $this->argument('vacancyTitle'), 'romaspirin93@gmail.com');
+        (new ParserObject())->execute('', Vacancy::where('name', $this->argument('vacancyTitle'))->first(), User::where('email', 'romaspirin93@gmail.com')->first());
         return 0;
     }
 }

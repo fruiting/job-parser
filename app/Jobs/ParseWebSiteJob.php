@@ -2,6 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Models\User;
+use App\Models\Vacancy;
+use App\Services\Parser\Parser;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -13,38 +16,45 @@ use Illuminate\Queue\SerializesModels;
  *
  * @package App\Jobs
  */
-class ParseJobWebSite implements ShouldQueue
+class ParseWebSiteJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /** @var string $resource Web-site to parse */
     private $resource;
 
-    /** @var string $vacancy Vacancy name */
+    /** @var Vacancy $vacancy Vacancy model */
     private $vacancy;
 
+    /** @var User $user User model */
+    private $user;
+
     /** @var int Max tries to run job */
-    public $tries = 5;
+    public $tries = 1;
 
     /**
      * Create a new job instance.
      *
      * @param string $resource Web-site to parse
-     * @param string $vacancy Vacancy name
+     * @param Vacancy $vacancy Vacancy model
+     * @param User $user User model
      */
-    public function __construct(string $resource, string $vacancy)
+    public function __construct(string $resource, Vacancy $vacancy, User $user)
     {
         $this->resource = $resource;
         $this->vacancy = $vacancy;
+        $this->user = $user;
     }
 
     /**
      * Execute the job.
      *
      * @return void
+     *
+     * @throws \PHPHtmlParser\Exceptions\CircularException
      */
     public function handle()
     {
-        //
+        (new Parser())->execute($this->resource, $this->vacancy, $this->user);
     }
 }

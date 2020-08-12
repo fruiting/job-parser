@@ -2,6 +2,8 @@
 
 namespace App\Services\Parser;
 
+use App\Models\User;
+use App\Models\Vacancy;
 use App\Services\Vacancy\VacancyDto;
 use App\Services\Vacancy\VacancyRedis;
 use Generator;
@@ -30,7 +32,7 @@ final class Parser
         DetailPageParserInterface $detailPageParser,
         string $vacancyTitle
     ): Generator {
-        for ($i = 0; $i < $pagesCount; $i++) {
+        for ($i = 0; $i < 2; $i++) {
             $listPageParser->execute($vacancyTitle, $i);
             $vacanciesUrls = $listPageParser->getVacanciesUrls();
             $vacanciesCollection = new Collection();
@@ -49,25 +51,25 @@ final class Parser
      * Executes parser
      *
      * @param string $site Site url
-     * @param string $vacancyTitle Search by title
-     * @param string $email User email
+     * @param Vacancy $vacancy Vacancy model
+     * @param User $user User model
      *
      * @return void
      *
      * @throws \PHPHtmlParser\Exceptions\CircularException
      */
-    public function execute(string $site, string $vacancyTitle, string $email): void
+    public function execute(string $site, Vacancy $vacancy, User $user): void
     {
-        $key = $email . ':' . $vacancyTitle;
+        $key = $user->email . ':' . $vacancy->name;
         $factory = ParserFactory::getParser($site);
         $listPageParser = $factory->getListPageParser();
         $detailPageParser = $factory->getDetailPageParser();
 
-        $vacanciesCount = $factory->getVacanciesCount($vacancyTitle);
+        $vacanciesCount = $factory->getVacanciesCount($vacancy->name);
         VacancyRedis::saveVacanciesCount($key, $vacanciesCount);
 
         $pagesCount = $factory->getPagesCount($vacanciesCount);
-        $generator = $this->parseDetails($pagesCount, $listPageParser, $detailPageParser, $vacancyTitle);
+        $generator = $this->parseDetails($pagesCount, $listPageParser, $detailPageParser, $vacancy->name);
         $page = 1;
 
         foreach ($generator as $vacancies) {
@@ -81,7 +83,8 @@ final class Parser
 
                 $page++;
                 $i++;
-            }die;
+            }
+            break;
         }
     }
 }

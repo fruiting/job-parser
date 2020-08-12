@@ -19,19 +19,13 @@ class VacancyRedis
     /**
      * Returns redis key for vacancy info
      *
-     * @param int $userId User id in database
-     * @param int $vacancyId Vacancy id in database
+     * @param User $user User model
+     * @param Vacancy $vacancyId Vacancy model
      *
      * @return string
      */
-    public static function getRedisKeyForVacation(int $userId, int $vacancyId): string
+    public static function getRedisKeyForVacation(User $user, Vacancy $vacancy): string
     {
-        /** @var User $user */
-        $user = User::where('id', $userId)->first();
-
-        /** @var Vacancy $vacancy */
-        $vacancy = Vacancy::where('id', $vacancyId)->first();
-
         return $user->email . ':' . $vacancy->name;
     }
 
