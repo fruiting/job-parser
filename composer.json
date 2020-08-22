@@ -19,7 +19,8 @@
         "laravel/tinker": "^2.0",
         "laravel/ui": "^2.1",
         "paquettg/php-html-parser": "^3.0",
-        "predis/predis": "^1.1"
+        "predis/predis": "^1.1",
+        "ext-json": "*"
     },
     "require-dev": {
         "facade/ignition": "^2.0",

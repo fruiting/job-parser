@@ -2,12 +2,16 @@
 
 namespace App\Services\Parser;
 
+use App\Helpers\VacancyHelper;
 use App\Models\User;
 use App\Models\Vacancy;
 use App\Services\Vacancy\VacancyDto;
+use App\Services\Vacancy\VacancyFactory;
 use App\Services\Vacancy\VacancyRedis;
 use Generator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Redis;
+use Throwable;
 
 /**
  * Class ParserBase
@@ -32,7 +36,7 @@ final class Parser
         DetailPageParserInterface $detailPageParser,
         string $vacancyTitle
     ): Generator {
-        for ($i = 0; $i < 2; $i++) {
+        for ($i = 0; $i < $pagesCount; $i++) {
             $listPageParser->execute($vacancyTitle, $i);
             $vacanciesUrls = $listPageParser->getVacanciesUrls();
             $vacanciesCollection = new Collection();
@@ -48,7 +52,39 @@ final class Parser
     }
 
     /**
-     * Executes parser
+     * Loops all saved vacations to search the most well paid. Well paid - when salary is more or equal than average
+     *
+     * @param string $key Vacancies key
+     *
+     * @return void
+     */
+    private function loadWellPaidVacanciesInfo(string $key): void
+    {
+        $averageSalary = (new Salary())->loadSalary($key)->getAverageSalary();
+        $vacancies = VacancyRedis::getFromHash($key . ':' . VacancyHelper::VACANCIES_INFO_REDIS_KEY_POSTFIX);
+
+        $i = 0;
+        foreach ($vacancies as $vacancy) {
+            try {
+                $vacancyDto = VacancyFactory::getFromJson($vacancy);
+                foreach ($vacancyDto->salaryRange as $salary) {
+                    if ($salary >= $averageSalary) {
+                        VacancyRedis::saveVacancy(
+                            $key . ':' . VacancyHelper::WELL_PAID_VACANCIES_INFO_REDIS_KEY_POSTFIX,
+                            $i++,
+                            $vacancyDto
+                        );
+                    }
+                }
+            } catch (Throwable $exception) {
+                logger()
+                    ->error('Could not write well paid vacancy to redis. Reason: ' . $exception->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Realizes parser logic
      *
      * @param string $site Site url
      * @param Vacancy $vacancy Vacancy model
@@ -70,21 +106,27 @@ final class Parser
 
         $pagesCount = $factory->getPagesCount($vacanciesCount);
         $generator = $this->parseDetails($pagesCount, $listPageParser, $detailPageParser, $vacancy->name);
-        $page = 1;
 
+        $i = 0;
         foreach ($generator as $vacancies) {
-            $i = 0;
             foreach ($vacancies as $vacancy) {
-                /** @var VacancyDto $vacancy */
+                try {
+                    /** @var VacancyDto $vacancy */
 
-                Salary::addSalaries($key, $vacancy->salaryRange);
-                PopularSkills::addSkills($key, $vacancy->skills);
-                VacancyRedis::saveVacancy($key . ':' . $page, $i, $vacancy);
-
-                $page++;
-                $i++;
+                    Salary::addSalaries($key, $vacancy->salaryRange);
+                    PopularSkills::addSkills($key, $vacancy->skills);
+                    VacancyRedis::saveVacancy(
+                        $key . ':' . VacancyHelper::VACANCIES_INFO_REDIS_KEY_POSTFIX,
+                        $i++,
+                        $vacancy
+                    );
+                } catch (Throwable $exception) {
+                    logger()->error('Could not write vacancy to redis. Reason: ' . $exception->getMessage());
+                }
             }
-            break;
         }
+
+        $this->loadWellPaidVacanciesInfo($key);
+        Redis::del($key . ':' . VacancyHelper::VACANCIES_INFO_REDIS_KEY_POSTFIX, '*');
     }
 }

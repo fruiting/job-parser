@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\VacancyHelper;
 use App\Jobs\ParseWebSiteJob;
 use App\Jobs\SendReportLink;
 use App\Models\User;
@@ -84,7 +85,7 @@ class ParserController extends Controller
     }
 
     /**
-     * Returns array of vacancies jsons
+     * Returns array of well paid vacancies jsons
      *
      * @param int $userId
      * @param int $vacancyId
@@ -95,7 +96,6 @@ class ParserController extends Controller
     {
         $repository = (new VacancyUserRepository())->loadData($userId, $vacancyId);
         $key = VacancyRedis::getRedisKeyForVacation($repository->getUser(), $repository->getVacancy());
-        dd(VacancyRedis::getFromHash($key));
-        return VacancyRedis::getFromHash($key);
+        return VacancyRedis::getFromHash($key . ':' . VacancyHelper::WELL_PAID_VACANCIES_INFO_REDIS_KEY_POSTFIX);
     }
 }

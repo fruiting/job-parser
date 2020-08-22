@@ -20,7 +20,7 @@ class VacancyRedis
      * Returns redis key for vacancy info
      *
      * @param User $user User model
-     * @param Vacancy $vacancyId Vacancy model
+     * @param Vacancy $vacancy Vacancy model
      *
      * @return string
      */

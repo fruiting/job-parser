@@ -2,6 +2,7 @@
 
 namespace App\Services\Parser;
 
+use App\Services\Vacancy\VacancyRedis;
 use Illuminate\Support\Facades\Redis;
 
 /**
@@ -39,7 +40,7 @@ class PopularSkills
      */
     public static function getOnlyPopular(string $key): array
     {
-        $skills = Redis::hgetall($key . ':skills');
+        $skills = VacancyRedis::getFromHash($key . ':skills');
         return array_filter($skills, function (string $skill) {
             return $skill >= self::COUNT_TO_BE_POPULAR;
         });

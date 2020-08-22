@@ -63,7 +63,7 @@ return [
             'driver' => 'redis',
             'connection' => 'default',
             'queue' => env('REDIS_QUEUE', 'default'),
-            'retry_after' => 1800,
+            'retry_after' => \App\Helpers\TTL::DAY,
             'block_for' => null,
         ],
 

@@ -79,7 +79,7 @@ abstract class ParserDetailBaseAbstract implements DetailPageParserInterface
             | NotLoadedException
             | StrictException
             | ClientExceptionInterface $exception) {
-            //todo log it
+            logger()->error('Could not parse vacancy. Reason: ' . $exception->getMessage());
         } finally {
             return $vacancy;
         }
