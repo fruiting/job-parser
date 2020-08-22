@@ -26,7 +26,7 @@ class VacancyRedis
      */
     public static function getRedisKeyForVacation(User $user, Vacancy $vacancy): string
     {
-        return $user->email . ':' . $vacancy->name;
+        return $user->email . ':' . str_replace(' ', '+', $vacancy->name);
     }
 
     /**

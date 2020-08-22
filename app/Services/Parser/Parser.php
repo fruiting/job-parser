@@ -96,7 +96,7 @@ final class Parser
      */
     public function execute(string $site, Vacancy $vacancy, User $user): void
     {
-        $key = $user->email . ':' . $vacancy->name;
+        $key = $user->email . ':' . str_replace(' ', '+', $vacancy->name);
         $factory = ParserFactory::getParser($site);
         $listPageParser = $factory->getListPageParser();
         $detailPageParser = $factory->getDetailPageParser();

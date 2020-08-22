@@ -26,7 +26,7 @@ class Parser extends Command
      *
      * @var string
      */
-    protected $description = 'Parses job web-sites for vacancies';
+    protected $description = 'Test command to parse job web-sites for vacancies';
 
     /**
      * Execute the console command.
@@ -42,7 +42,11 @@ class Parser extends Command
      */
     public function handle()
     {
-        (new ParserObject())->execute('', Vacancy::where('name', $this->argument('vacancyTitle'))->first(), User::where('email', 'romaspirin93@gmail.com')->first());
+//        (new ParserObject())->execute(
+//            'hh.ru',
+//            Vacancy::where('name', '2d artist')->first(),
+//            User::where('email', 'romaspirin93@gmail.com')->first()
+//        );
         return 0;
     }
 }

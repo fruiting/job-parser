@@ -8,8 +8,8 @@
     </head>
     <body>
         <div id="app">
-{{--            <main-page></main-page>--}}
-            <report></report>
+            <main-page></main-page>
+{{--            <report></report>--}}
         </div>
     </body>
     <script src="{{ asset('js/app.js') }}"></script>

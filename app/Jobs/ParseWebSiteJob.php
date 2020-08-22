@@ -30,7 +30,7 @@ class ParseWebSiteJob implements ShouldQueue
     private $user;
 
     /** @var int Max tries to run job */
-    public $tries = 1;
+    public $tries = 5;
 
     /**
      * Create a new job instance.
@@ -56,5 +56,15 @@ class ParseWebSiteJob implements ShouldQueue
     public function handle()
     {
         (new Parser())->execute($this->resource, $this->vacancy, $this->user);
+    }
+
+    /**
+     * Handles failed job
+     *
+     * @param null $exception
+     */
+    public function fail($exception = null)
+    {
+        logger()->error($exception->getMessage());
     }
 }

@@ -18,6 +18,6 @@ abstract class ParserGeneralBase implements GeneralParserInterface
      */
     public function getPagesCount(string $vacanciesCount): int
     {
-        return $vacanciesCount / static::PAGE_SIZE;
+        return (int) ceil($vacanciesCount / static::PAGE_SIZE);
     }
 }
