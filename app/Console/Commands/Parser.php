@@ -42,11 +42,11 @@ class Parser extends Command
      */
     public function handle()
     {
-//        (new ParserObject())->execute(
-//            'hh.ru',
-//            Vacancy::where('name', '2d artist')->first(),
-//            User::where('email', 'romaspirin93@gmail.com')->first()
-//        );
+        (new ParserObject())->execute(
+            'hh.ru',
+            Vacancy::where('name', 'php-программист')->first(),
+            User::where('email', 'romaspirin93@gmail.com')->first()
+        );
         return 0;
     }
 }

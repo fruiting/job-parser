@@ -3,8 +3,8 @@
         <div v-if="parsingInProcess" class="d-flex align-items-center">
             <strong>
                 Проверяю вакансии по запросам: {{ vacanciesTitlesImploded }}...<br>
-                На почту {{ email }} будет отправлена ссылка на отчет после завершения парсинга.<br>
-                Либо можно дождаться окончания процесса и ссылка появится на этом экране.<br>
+                Эту страницу можно закрывать<br>
+                На почту {{ email }} будут отправлены ссылка на отчеты после завершения парсинга.<br>
                 Процесс займет некоторое время.
             </strong>
             <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>

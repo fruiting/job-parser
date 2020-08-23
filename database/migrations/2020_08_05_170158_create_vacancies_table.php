@@ -6,7 +6,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Class CreateVacanciesTable describes migration to create vavancies table
+ * Class CreateVacanciesTable describes migration to create vacancies table
  */
 class CreateVacanciesTable extends Migration
 {

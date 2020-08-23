@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Helpers\VacancyHelper;
 use App\Jobs\ParseWebSiteJob;
-use App\Jobs\SendReportLink;
 use App\Models\User;
 use App\Models\Vacancy;
 use App\Services\Parser\HeadHunter\HeadHunterListPageParser;
@@ -51,7 +50,6 @@ class ParserController extends Controller
             ParseWebSiteJob::dispatch(request()->get('resource'), $vacancyModel, $user)->onQueue('vacancy-' . $key);
         }
 
-//        dispatch(new SendReportLink($email));
         return response()->json([], Response::HTTP_OK);
     }
 

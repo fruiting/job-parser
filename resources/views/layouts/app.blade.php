@@ -7,10 +7,7 @@
         <title>Job parser</title>
     </head>
     <body>
-        <div id="app">
-            <main-page></main-page>
-{{--            <report></report>--}}
-        </div>
+        @section('content')
     </body>
     <script src="{{ asset('js/app.js') }}"></script>
 </html>

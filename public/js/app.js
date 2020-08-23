@@ -2145,6 +2145,8 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: ['vacancy']
 });
@@ -37753,14 +37755,12 @@ var render = function() {
                 "..."
             ),
             _c("br"),
+            _vm._v("\n            Эту страницу можно закрывать"),
+            _c("br"),
             _vm._v(
               "\n            На почту " +
                 _vm._s(_vm.email) +
-                " будет отправлена ссылка на отчет после завершения парсинга."
-            ),
-            _c("br"),
-            _vm._v(
-              "\n            Либо можно дождаться окончания процесса и ссылка появится на этом экране."
+                " будут отправлены ссылка на отчеты после завершения парсинга."
             ),
             _c("br"),
             _vm._v("\n            Процесс займет некоторое время.\n        ")
@@ -38007,7 +38007,7 @@ var render = function() {
         _vm._v(" "),
         _vm._l(_vm.vacancy.skills, function(skill) {
           return _c("p", { staticClass: "btn btn-primary mr-2" }, [
-            _vm._v(_vm._s(skill))
+            _vm._v("\n            " + _vm._s(skill) + "\n        ")
           ])
         }),
         _vm._v(" "),

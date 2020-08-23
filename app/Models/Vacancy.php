@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @package App\Models
  *
- * @property-read string $name
+ * @property-read int       $id
+ * @property-read string    $name
  */
 class Vacancy extends Model
 {

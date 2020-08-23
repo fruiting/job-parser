@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @package App\Models
  *
- * @property-read string $email
+ * @property-read int       $id
+ * @property-read string    $email
  */
 class User extends Model
 {

@@ -41,7 +41,7 @@ class HeadHunterListPageParser extends ParserListBaseAbstract
                     $this->vacanciesUrls[] = $collection[0]->getAttribute('href');
                 }
             } catch (Throwable $exception) {
-                //todo log it!
+                logger()->error('Could not parse vacancy block. Reason: ' . $exception->getMessage());
             }
         }
 

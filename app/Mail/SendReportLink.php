@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\Vacancy;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -18,14 +19,19 @@ class SendReportLink extends Mailable
     /** @var string $link Report link */
     public $link;
 
+    /** @var Vacancy $vacancy */
+    private $vacancy;
+
     /**
      * SendReportLink constructor.
      *
      * @param string $link Report link
+     * @param Vacancy $vacancy
      */
-    public function __construct(string $link)
+    public function __construct(string $link, Vacancy $vacancy)
     {
         $this->link = $link;
+        $this->vacancy = $vacancy;
     }
 
     /**
@@ -35,7 +41,6 @@ class SendReportLink extends Mailable
      */
     public function build()
     {
-        return $this//->from('no-reply@job-parser.ru')
-            ->view('emails.report');
+        return $this->from('no-reply@job-parser.ru')->view('emails.report');
     }
 }

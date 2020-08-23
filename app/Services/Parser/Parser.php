@@ -3,6 +3,7 @@
 namespace App\Services\Parser;
 
 use App\Helpers\VacancyHelper;
+use App\Mail\SendReportLink;
 use App\Models\User;
 use App\Models\Vacancy;
 use App\Services\Vacancy\VacancyDto;
@@ -10,6 +11,7 @@ use App\Services\Vacancy\VacancyFactory;
 use App\Services\Vacancy\VacancyRedis;
 use Generator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redis;
 use Throwable;
 
@@ -128,5 +130,11 @@ final class Parser
 
         $this->loadWellPaidVacanciesInfo($key);
         Redis::del($key . ':' . VacancyHelper::VACANCIES_INFO_REDIS_KEY_POSTFIX, '*');
+        Mail::to($user->email)->send(
+            new SendReportLink(
+                'http://job-parser.test' . '/?userId=' . $user->id . '&vacancyId=' . $vacancy->id,
+                $vacancy
+            )
+        );
     }
 }
