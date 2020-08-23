@@ -20,7 +20,7 @@ class SendReportLink extends Mailable
     public $link;
 
     /** @var Vacancy $vacancy */
-    private $vacancy;
+    public $vacancy;
 
     /**
      * SendReportLink constructor.

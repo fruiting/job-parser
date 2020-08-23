@@ -58,7 +58,8 @@ abstract class ParserDetailBaseAbstract implements DetailPageParserInterface
         $this->dom = DomHelper::getInitedDom($link);
 
         $vacancy = null;
-        try {
+//        try {
+            logger()->info('parsing ' . $link);
             $this->loadVacancyName();
             $this->loadCompany();
             $this->loadSalary();
@@ -71,17 +72,18 @@ abstract class ParserDetailBaseAbstract implements DetailPageParserInterface
                 $this->salaryRange,
                 $this->skills
             );
-        } catch (Throwable
-            | ChildNotFoundException
-            | CircularException
-            | ContentLengthException
-            | LogicalException
-            | NotLoadedException
-            | StrictException
-            | ClientExceptionInterface $exception) {
-            logger()->error('Could not parse vacancy. Reason: ' . $exception->getMessage());
-        } finally {
+            logger()->info($vacancy->toJson());
+//        } catch (Throwable
+//            | ChildNotFoundException
+//            | CircularException
+//            | ContentLengthException
+//            | LogicalException
+//            | NotLoadedException
+//            | StrictException
+//            | ClientExceptionInterface $exception) {
+//            logger()->error('Could not parse vacancy. Reason: ' . $exception->getMessage());
+//        } finally {
             return $vacancy;
-        }
+//        }
     }
 }

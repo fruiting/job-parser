@@ -41,6 +41,7 @@ final class Parser
         for ($i = 0; $i < $pagesCount; $i++) {
             $listPageParser->execute($vacancyTitle, $i);
             $vacanciesUrls = $listPageParser->getVacanciesUrls();
+            logger()->info(implode(';', $vacanciesUrls));
             $vacanciesCollection = new Collection();
 
             foreach ($vacanciesUrls as $url) {
@@ -89,25 +90,26 @@ final class Parser
      * Realizes parser logic
      *
      * @param string $site Site url
-     * @param Vacancy $vacancy Vacancy model
+     * @param Vacancy $vacancyModel Vacancy model
      * @param User $user User model
      *
      * @return void
      *
      * @throws \PHPHtmlParser\Exceptions\CircularException
      */
-    public function execute(string $site, Vacancy $vacancy, User $user): void
+    public function execute(string $site, Vacancy $vacancyModel, User $user): void
     {
-        $key = $user->email . ':' . str_replace(' ', '+', $vacancy->name);
+        $key = $user->email . ':' . str_replace(' ', '+', $vacancyModel->name);
         $factory = ParserFactory::getParser($site);
         $listPageParser = $factory->getListPageParser();
         $detailPageParser = $factory->getDetailPageParser();
 
-        $vacanciesCount = $factory->getVacanciesCount($vacancy->name);
+        $vacanciesCount = $factory->getVacanciesCount($vacancyModel->name);
         VacancyRedis::saveVacanciesCount($key, $vacanciesCount);
 
         $pagesCount = $factory->getPagesCount($vacanciesCount);
-        $generator = $this->parseDetails($pagesCount, $listPageParser, $detailPageParser, $vacancy->name);
+        logger()->info($vacancyModel->name . ': pages count ' . $pagesCount);
+        $generator = $this->parseDetails($pagesCount, $listPageParser, $detailPageParser, $vacancyModel->name);
 
         $i = 0;
         foreach ($generator as $vacancies) {
@@ -132,8 +134,8 @@ final class Parser
         Redis::del($key . ':' . VacancyHelper::VACANCIES_INFO_REDIS_KEY_POSTFIX, '*');
         Mail::to($user->email)->send(
             new SendReportLink(
-                'http://job-parser.test' . '/?userId=' . $user->id . '&vacancyId=' . $vacancy->id,
-                $vacancy
+                'http://job-parser.test' . '/report?userId=' . $user->id . '&vacancyId=' . $vacancyModel->id,
+                $vacancyModel
             )
         );
     }
