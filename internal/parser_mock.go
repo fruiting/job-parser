@@ -33,20 +33,6 @@ func (m *MockJobsParser) EXPECT() *MockJobsParserMockRecorder {
 	return m.recorder
 }
 
-// DetailPageLink mocks base method.
-func (m *MockJobsParser) DetailPageLink() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DetailPageLink")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// DetailPageLink indicates an expected call of DetailPageLink.
-func (mr *MockJobsParserMockRecorder) DetailPageLink() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DetailPageLink", reflect.TypeOf((*MockJobsParser)(nil).DetailPageLink))
-}
-
 // GeneralLink mocks base method.
 func (m *MockJobsParser) GeneralLink(position Name) string {
 	m.ctrl.T.Helper()
@@ -118,6 +104,20 @@ func (m *MockJobsParser) ParseDetail(dom string) (*Job, error) {
 func (mr *MockJobsParserMockRecorder) ParseDetail(dom interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseDetail", reflect.TypeOf((*MockJobsParser)(nil).ParseDetail), dom)
+}
+
+// Parser mocks base method.
+func (m *MockJobsParser) Parser() Parser {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Parser")
+	ret0, _ := ret[0].(Parser)
+	return ret0
+}
+
+// Parser indicates an expected call of Parser.
+func (mr *MockJobsParserMockRecorder) Parser() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Parser", reflect.TypeOf((*MockJobsParser)(nil).Parser))
 }
 
 // SearchPageLink mocks base method.

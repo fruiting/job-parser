@@ -1,6 +1,9 @@
 package telegram
 
-import "go.uber.org/zap"
+import (
+	"fruiting/job-parser/internal"
+	"go.uber.org/zap"
+)
 
 const (
 	token = "6252436889:AAGFcH73URLj65nQV4v6ZDw7mGI7t6VaRbQ"
@@ -17,6 +20,6 @@ func NewChatBotHandle(logger *zap.Logger) *ChatBotHandle {
 	}
 }
 
-func (h *ChatBotHandle) ListenForCommands() error {
+func (h *ChatBotHandle) Push(jobsInfo *internal.JobsInfo) error {
 	return nil
 }

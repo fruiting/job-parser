@@ -4,5 +4,5 @@ package internal
 
 // ChatBotHandler handles with chatbot
 type ChatBotHandler interface {
-	ListenForCommands() error
+	Push(jobsInfo *JobsInfo) error
 }

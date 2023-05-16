@@ -1,23 +1,68 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
+	"fruiting/job-parser/internal"
+	"fruiting/job-parser/internal/chatbothandler/telegram"
 	"fruiting/job-parser/internal/parser/headhunter"
+	"fruiting/job-parser/internal/storage/pgsql"
+	"github.com/adjust/redismq"
+	"github.com/jessevdk/go-flags"
+	"github.com/mailru/easyjson"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 func main() {
-	logger, err := initLogger("info", false)
+	var cfg Config
+	parser := flags.NewParser(&cfg, flags.Default)
+	_, err := parser.Parse()
 	if err != nil {
-		log.Fatal(fatalJsonLog("Failed to init logger.", err))
+		log.Fatal(fatalJsonLog("Failed to parse config", err))
 	}
-	parser := headhunter.NewParser(logger)
-	parser.ParseJobsInfo("https://hh.ru/vacancies/golang-developer")
+
+	logger, err := initLogger(cfg.LogLevel, cfg.LogJSON)
+	if err != nil {
+		log.Fatal(fatalJsonLog("Failed to init logger", err))
+	}
+
+	pool := redismq.CreateQueue(cfg.RedisHost, cfg.RedisPort, cfg.RedisPassword, 0, "tasks_queue")
+	consumer, err := pool.AddConsumer("tasks_consumer2")
+	if err != nil {
+		logger.Fatal("can't add consumer for redis queue", zap.Error(err))
+	}
+
+	payload := internal.Payload{
+		PositionName: "golang-dev",
+	}
+	payloadJson, err := easyjson.Marshal(payload)
+	err = pool.Put(string(payloadJson))
+
+	pgsqlStorage := pgsql.NewStorage()
+	chatBotHandler := telegram.NewChatBotHandle(logger)
+	headHunterParser := headhunter.NewParser(logger)
+	generalParser := internal.NewGeneralParser(headHunterParser)
+
+	processor := internal.NewProcessor(consumer, pgsqlStorage, chatBotHandler, generalParser, logger)
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		for {
+			err = processor.Run(context.Background())
+			if err != nil {
+				logger.Error("can't process", zap.Error(err))
+			}
+		}
+	}()
+
+	wg.Wait()
 }
 
 // initLogger создает и настраивает новый экземпляр логгера

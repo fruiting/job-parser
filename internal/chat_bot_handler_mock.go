@@ -33,16 +33,16 @@ func (m *MockChatBotHandler) EXPECT() *MockChatBotHandlerMockRecorder {
 	return m.recorder
 }
 
-// ListenForCommands mocks base method.
-func (m *MockChatBotHandler) ListenForCommands() error {
+// Push mocks base method.
+func (m *MockChatBotHandler) Push(jobsInfo *JobsInfo) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListenForCommands")
+	ret := m.ctrl.Call(m, "Push", jobsInfo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// ListenForCommands indicates an expected call of ListenForCommands.
-func (mr *MockChatBotHandlerMockRecorder) ListenForCommands() *gomock.Call {
+// Push indicates an expected call of Push.
+func (mr *MockChatBotHandlerMockRecorder) Push(jobsInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListenForCommands", reflect.TypeOf((*MockChatBotHandler)(nil).ListenForCommands))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Push", reflect.TypeOf((*MockChatBotHandler)(nil).Push), jobsInfo)
 }

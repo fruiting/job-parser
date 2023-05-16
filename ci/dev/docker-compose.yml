@@ -1,3 +1,19 @@
 version: '3'
 
 services:
+  redis-server:
+    image: redis
+    ports:
+      - '6379:6379'
+  redis-cli:
+    image: redis
+  pgsql:
+    image: postgres
+    volumes:
+      - .:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: pguser
+      POSTGRES_DB: pgdb
