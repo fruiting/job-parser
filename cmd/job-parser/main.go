@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -11,10 +12,12 @@ import (
 	"fruiting/job-parser/internal"
 	"fruiting/job-parser/internal/chatbothandler/telegram"
 	"fruiting/job-parser/internal/parser/headhunter"
+	"fruiting/job-parser/internal/pricesorter"
+	"fruiting/job-parser/internal/queue"
+	"fruiting/job-parser/internal/skillssorter"
 	"fruiting/job-parser/internal/storage/pgsql"
 	"github.com/adjust/redismq"
 	"github.com/jessevdk/go-flags"
-	"github.com/mailru/easyjson"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -32,34 +35,39 @@ func main() {
 		log.Fatal(fatalJsonLog("Failed to init logger", err))
 	}
 
-	pool := redismq.CreateQueue(cfg.RedisHost, cfg.RedisPort, cfg.RedisPassword, 0, "tasks_queue")
-	consumer, err := pool.AddConsumer("tasks_consumer2")
+	pool := redismq.CreateQueue(cfg.RedisHost, cfg.RedisPort, cfg.RedisPassword, 0, "parse_by_position_tasks_queue2")
+	consumer, err := pool.AddConsumer("parse_by_position_tasks_consumer2")
 	if err != nil {
 		logger.Fatal("can't add consumer for redis queue", zap.Error(err))
 	}
-
-	payload := internal.Payload{
-		PositionName: "golang-dev",
-	}
-	payloadJson, err := easyjson.Marshal(payload)
-	err = pool.Put(string(payloadJson))
 
 	pgsqlStorage := pgsql.NewStorage()
 	chatBotHandler := telegram.NewChatBotHandle(logger)
 	headHunterParser := headhunter.NewParser(logger)
 	generalParser := internal.NewGeneralParser(headHunterParser)
 
-	processor := internal.NewProcessor(consumer, pgsqlStorage, chatBotHandler, generalParser, logger)
+	parseByPositionConsumer := queue.NewParseByPositionTaskConsumer(
+		consumer,
+		pgsqlStorage,
+		chatBotHandler,
+		pricesorter.NewPriceSorter(),
+		skillssorter.NewSkillsSorter(),
+		generalParser,
+		logger,
+	)
+
+	payload := "asdas"
+	payloadJson, err := json.Marshal(payload)
+	err = pool.Put(string(payloadJson))
+
+	queueConsumer := internal.NewQueueConsumer([]internal.Consumer{
+		parseByPositionConsumer,
+	})
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		for {
-			err = processor.Run(context.Background())
-			if err != nil {
-				logger.Error("can't process", zap.Error(err))
-			}
-		}
+		queueConsumer.Run(context.Background())
 	}()
 
 	wg.Wait()

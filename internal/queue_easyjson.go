@@ -17,7 +17,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson5e1ce037DecodeFruitingJobParserInternal(in *jlexer.Lexer, out *Payload) {
+func easyjson5e1ce037DecodeFruitingJobParserInternal(in *jlexer.Lexer, out *ParseByPositionTask) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -37,7 +37,7 @@ func easyjson5e1ce037DecodeFruitingJobParserInternal(in *jlexer.Lexer, out *Payl
 		}
 		switch key {
 		case "position_name":
-			out.PositionName = Name(in.String())
+			out.PositionName = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -48,7 +48,7 @@ func easyjson5e1ce037DecodeFruitingJobParserInternal(in *jlexer.Lexer, out *Payl
 		in.Consumed()
 	}
 }
-func easyjson5e1ce037EncodeFruitingJobParserInternal(out *jwriter.Writer, in Payload) {
+func easyjson5e1ce037EncodeFruitingJobParserInternal(out *jwriter.Writer, in ParseByPositionTask) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -61,25 +61,25 @@ func easyjson5e1ce037EncodeFruitingJobParserInternal(out *jwriter.Writer, in Pay
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v Payload) MarshalJSON() ([]byte, error) {
+func (v ParseByPositionTask) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
 	easyjson5e1ce037EncodeFruitingJobParserInternal(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v Payload) MarshalEasyJSON(w *jwriter.Writer) {
+func (v ParseByPositionTask) MarshalEasyJSON(w *jwriter.Writer) {
 	easyjson5e1ce037EncodeFruitingJobParserInternal(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *Payload) UnmarshalJSON(data []byte) error {
+func (v *ParseByPositionTask) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjson5e1ce037DecodeFruitingJobParserInternal(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *Payload) UnmarshalEasyJSON(l *jlexer.Lexer) {
+func (v *ParseByPositionTask) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson5e1ce037DecodeFruitingJobParserInternal(l, v)
 }

@@ -34,16 +34,31 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 	return m.recorder
 }
 
-// Set mocks base method.
-func (m *MockStorage) Set(ctx context.Context, jobsInfo *JobsInfo) error {
+// Get mocks base method.
+func (m *MockStorage) Get(ctx context.Context, positionName Name, fromYear, toYear uint16) (*JobsInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Set", ctx, jobsInfo)
+	ret := m.ctrl.Call(m, "Get", ctx, positionName, fromYear, toYear)
+	ret0, _ := ret[0].(*JobsInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockStorageMockRecorder) Get(ctx, positionName, fromYear, toYear interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStorage)(nil).Get), ctx, positionName, fromYear, toYear)
+}
+
+// Set mocks base method.
+func (m *MockStorage) Set(ctx context.Context, position Name, minSalary, maxSalary, medianSalary Salary, parser Parser) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Set", ctx, position, minSalary, maxSalary, medianSalary, parser)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Set indicates an expected call of Set.
-func (mr *MockStorageMockRecorder) Set(ctx, jobsInfo interface{}) *gomock.Call {
+func (mr *MockStorageMockRecorder) Set(ctx, position, minSalary, maxSalary, medianSalary, parser interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockStorage)(nil).Set), ctx, jobsInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockStorage)(nil).Set), ctx, position, minSalary, maxSalary, medianSalary, parser)
 }

@@ -133,3 +133,79 @@ func (mr *MockJobsParserMockRecorder) SearchPageLink(pageNumber interface{}) *go
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchPageLink", reflect.TypeOf((*MockJobsParser)(nil).SearchPageLink), pageNumber)
 }
+
+// MockPriceSorter is a mock of PriceSorter interface.
+type MockPriceSorter struct {
+	ctrl     *gomock.Controller
+	recorder *MockPriceSorterMockRecorder
+}
+
+// MockPriceSorterMockRecorder is the mock recorder for MockPriceSorter.
+type MockPriceSorterMockRecorder struct {
+	mock *MockPriceSorter
+}
+
+// NewMockPriceSorter creates a new mock instance.
+func NewMockPriceSorter(ctrl *gomock.Controller) *MockPriceSorter {
+	mock := &MockPriceSorter{ctrl: ctrl}
+	mock.recorder = &MockPriceSorterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockPriceSorter) EXPECT() *MockPriceSorterMockRecorder {
+	return m.recorder
+}
+
+// PricesFromJobs mocks base method.
+func (m *MockPriceSorter) PricesFromJobs(jobs []*Job) (Salary, Salary, Salary) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PricesFromJobs", jobs)
+	ret0, _ := ret[0].(Salary)
+	ret1, _ := ret[1].(Salary)
+	ret2, _ := ret[2].(Salary)
+	return ret0, ret1, ret2
+}
+
+// PricesFromJobs indicates an expected call of PricesFromJobs.
+func (mr *MockPriceSorterMockRecorder) PricesFromJobs(jobs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PricesFromJobs", reflect.TypeOf((*MockPriceSorter)(nil).PricesFromJobs), jobs)
+}
+
+// MockSkillsSorter is a mock of SkillsSorter interface.
+type MockSkillsSorter struct {
+	ctrl     *gomock.Controller
+	recorder *MockSkillsSorterMockRecorder
+}
+
+// MockSkillsSorterMockRecorder is the mock recorder for MockSkillsSorter.
+type MockSkillsSorterMockRecorder struct {
+	mock *MockSkillsSorter
+}
+
+// NewMockSkillsSorter creates a new mock instance.
+func NewMockSkillsSorter(ctrl *gomock.Controller) *MockSkillsSorter {
+	mock := &MockSkillsSorter{ctrl: ctrl}
+	mock.recorder = &MockSkillsSorterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSkillsSorter) EXPECT() *MockSkillsSorterMockRecorder {
+	return m.recorder
+}
+
+// MostPopularSkills mocks base method.
+func (m *MockSkillsSorter) MostPopularSkills(jobs []*Job, count uint16) []string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MostPopularSkills", jobs, count)
+	ret0, _ := ret[0].([]string)
+	return ret0
+}
+
+// MostPopularSkills indicates an expected call of MostPopularSkills.
+func (mr *MockSkillsSorterMockRecorder) MostPopularSkills(jobs, count interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MostPopularSkills", reflect.TypeOf((*MockSkillsSorter)(nil).MostPopularSkills), jobs, count)
+}

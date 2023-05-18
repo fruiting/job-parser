@@ -1,5 +1,7 @@
 package internal
 
+import "time"
+
 //go:generate mockgen -source=parser.go -destination=./parser_mock.go -package=internal
 
 // JobsParser parses web-site
@@ -19,10 +21,23 @@ type JobsParser interface {
 	ParseDetail(dom string) (*Job, error)
 }
 
+// PriceSorter sorts prices
+type PriceSorter interface {
+	// PricesFromJobs returns min, max and median salaries
+	PricesFromJobs(jobs []*Job) (Salary, Salary, Salary)
+}
+
+type SkillsSorter interface {
+	// MostPopularSkills returns the most popular skills
+	MostPopularSkills(jobs []*Job, count uint16) []string
+}
+
 type Parser string
 
 const (
 	HeadHunterParser Parser = "hh.ru"
+
+	MostPopularSkillsCount uint16 = 50
 )
 
 type Name string
@@ -46,4 +61,5 @@ type JobsInfo struct {
 	PopularSkills   skills
 	Parser          Parser
 	Jobs            []*Job
+	Time            *time.Time
 }

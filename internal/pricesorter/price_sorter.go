@@ -1,4 +1,4 @@
-package price_sorter
+package pricesorter
 
 import "fruiting/job-parser/internal"
 

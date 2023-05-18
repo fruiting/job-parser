@@ -10,28 +10,28 @@ import (
 )
 
 type GeneralParser struct {
-	parser JobsParser
+	Parser JobsParser
 }
 
 func NewGeneralParser(parser JobsParser) *GeneralParser {
 	return &GeneralParser{
-		parser: parser,
+		Parser: parser,
 	}
 }
 
 func (p *GeneralParser) Run(position Name) ([]*Job, error) {
 	return nil, nil
-	generalParseDom, err := p.parse(p.parser.GeneralLink(position))
+	generalParseDom, err := p.parse(p.Parser.GeneralLink(position))
 	if err != nil {
 		return nil, fmt.Errorf("can't make general parse: %w", err)
 	}
 
-	pagesCount, err := p.parser.PagesCount(generalParseDom)
+	pagesCount, err := p.Parser.PagesCount(generalParseDom)
 	if err != nil {
 		return nil, fmt.Errorf("can't get pages count: %w", err)
 	}
 
-	firstPageLinks, err := p.parser.Links(generalParseDom)
+	firstPageLinks, err := p.Parser.Links(generalParseDom)
 	if err != nil {
 		return nil, fmt.Errorf("can't get links in general parse: %w", err)
 	}
@@ -44,12 +44,12 @@ func (p *GeneralParser) Run(position Name) ([]*Job, error) {
 		go func(i uint16) {
 			err := retry.Do(
 				func() error {
-					pageDom, err := p.parse(p.parser.SearchPageLink(i + 1))
+					pageDom, err := p.parse(p.Parser.SearchPageLink(i + 1))
 					if err != nil {
 						return fmt.Errorf("can't parse page %d: %w", i+1, err)
 					}
 
-					nextPageLinks, err := p.parser.Links(pageDom)
+					nextPageLinks, err := p.Parser.Links(pageDom)
 					if err != nil {
 						return fmt.Errorf("can't get links in page %d: %w", i+1, err)
 					}
@@ -66,7 +66,7 @@ func (p *GeneralParser) Run(position Name) ([]*Job, error) {
 		}(i)
 	}
 
-	jobsInfo := make([]*Job, 0, int(pagesCount*p.parser.ItemsCount()))
+	jobsInfo := make([]*Job, 0, int(pagesCount*p.Parser.ItemsCount()))
 	for {
 		select {
 		case linksBatch := <-links:
@@ -78,7 +78,7 @@ func (p *GeneralParser) Run(position Name) ([]*Job, error) {
 							return fmt.Errorf("can't get detail page dom %s: %w", link, err)
 						}
 
-						jobInfo, err := p.parser.ParseDetail(detailPageDom)
+						jobInfo, err := p.Parser.ParseDetail(detailPageDom)
 						if err != nil {
 							return fmt.Errorf("can't parse detail page dom %s: %w", link, err)
 						}
