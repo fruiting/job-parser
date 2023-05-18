@@ -3,6 +3,7 @@ package pgsql
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -99,23 +100,29 @@ func (s *Storage) Get(
 }
 
 type dbJobsInfoResponse struct {
-	PositionToParse string    `db:"position_to_parse"`
-	MinSalary       uint32    `db:"min_salary"`
-	MaxSalary       uint32    `db:"max_salary"`
-	MedianSalary    uint32    `db:"median_salary"`
-	PopularSkills   []byte    `db:"popular_skills"`
-	Parser          string    `db:"parser"`
-	Time            time.Time `db:"mdate"`
+	PositionToParse string     `db:"position_to_parse"`
+	MinSalary       uint32     `db:"min_salary"`
+	MaxSalary       uint32     `db:"max_salary"`
+	MedianSalary    uint32     `db:"median_salary"`
+	PopularSkills   []byte     `db:"popular_skills"`
+	Parser          string     `db:"parser"`
+	Time            *time.Time `db:"mdate"`
 }
 
 func (r *dbJobsInfoResponse) mapToDomain() (*internal.JobsInfo, error) {
+	var popularSkills []string
+	err := json.Unmarshal(r.PopularSkills, &popularSkills)
+	if err != nil {
+		return nil, fmt.Errorf("can't unmarshal: %w", err)
+	}
+
 	return &internal.JobsInfo{
 		PositionToParse: internal.Name(r.PositionToParse),
 		MinSalary:       internal.Salary(r.MinSalary),
 		MaxSalary:       internal.Salary(r.MaxSalary),
 		MedianSalary:    internal.Salary(r.MedianSalary),
-		PopularSkills:   nil, //todo
+		PopularSkills:   popularSkills,
 		Parser:          internal.Parser(r.Parser),
-		Time:            nil, //todo
+		Time:            r.Time,
 	}, nil
 }
