@@ -82,7 +82,6 @@ func NewGeneralParser(parser JobsParser) *GeneralParser {
 }
 
 func (p *GeneralParser) Run(position Name) ([]*Job, error) {
-	return nil, nil
 	generalParseDom, err := p.parse(p.Parser.GeneralLink(position))
 	if err != nil {
 		return nil, fmt.Errorf("can't make general parse: %w", err)

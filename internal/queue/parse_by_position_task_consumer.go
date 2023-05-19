@@ -1,14 +1,21 @@
 package queue
 
+//go:generate mockgen -source=parse_by_position_task_consumer.go -destination=./parse_by_position_task_consumer_mock.go -package=queue
+
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 
 	"fruiting/job-parser/internal"
-	"github.com/adjust/redismq"
 	"go.uber.org/zap"
 )
+
+type TaskProcessor interface {
+	Requeue() error
+	Fail() error
+	Ack() error
+}
 
 type ParseByPositionTaskConsumer struct {
 	consumer       internal.RedisConsumer
@@ -42,6 +49,12 @@ func NewParseByPositionTaskConsumer(
 
 func (c *ParseByPositionTaskConsumer) Consume(ctx context.Context) {
 	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
 		task, err := c.consumer.Get()
 		if err != nil {
 			continue
@@ -121,12 +134,12 @@ func (c *ParseByPositionTaskConsumer) execute(ctx context.Context, payload *inte
 	return nil
 }
 
-func (c *ParseByPositionTaskConsumer) requeue(task *redismq.Package) error {
+func (c *ParseByPositionTaskConsumer) requeue(task TaskProcessor) error {
 	err := task.Requeue()
 	if err != nil {
-		err = task.Fail()
-		if err != nil {
-			return fmt.Errorf("can't fail task: %w", err)
+		failErr := task.Fail()
+		if failErr != nil {
+			return fmt.Errorf("can't fail task: %w", failErr)
 		}
 
 		return fmt.Errorf("can't requeue task: %w", err)

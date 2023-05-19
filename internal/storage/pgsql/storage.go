@@ -9,16 +9,20 @@ import (
 	"time"
 
 	"fruiting/job-parser/internal"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
 type Storage struct {
-	db     *sql.DB
+	db     *sqlx.DB
 	logger *zap.Logger
 }
 
-func NewStorage() *Storage {
-	return &Storage{}
+func NewStorage(db *sqlx.DB, logger *zap.Logger) *Storage {
+	return &Storage{
+		db:     db,
+		logger: logger,
+	}
 }
 
 func (s *Storage) Set(

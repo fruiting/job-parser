@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"net/url"
@@ -51,12 +50,12 @@ func main() {
 		logger.Fatal("can't add consumer for redis queue", zap.Error(err))
 	}
 
-	//pgDb, err := initPgDb(cfg.PgDbHost, cfg.PgDbPort, cfg.PgDbUsername, cfg.PgDbPassword, cfg.PgDbName)
-	//if err != nil {
-	//	logger.Fatal("can't init pg db", zap.Error(err))
-	//}
+	pgDb, err := initPgDb(cfg.PgDbHost, cfg.PgDbPort, cfg.PgDbUsername, cfg.PgDbPassword, cfg.PgDbName)
+	if err != nil {
+		logger.Fatal("can't init pg db", zap.Error(err))
+	}
 
-	pgsqlStorage := pgsql.NewStorage()
+	pgsqlStorage := pgsql.NewStorage(pgDb, logger)
 	httpServer := http.NewServer(cfg.HttpListen, parseByPositionTaskProducer, pgsqlStorage, logger)
 	chatBotHandler := telegram.NewChatBotHandle(logger)
 	headHunterParser := headhunter.NewParser(logger)
@@ -94,7 +93,7 @@ func main() {
 	wg.Wait()
 }
 
-func initPgDb(host string, port int, user, password, dbName string) (*sql.DB, error) {
+func initPgDb(host string, port int, user, password, dbName string) (*sqlx.DB, error) {
 	hostPort := fmt.Sprintf("%s:%d", host, port)
 	db := &url.URL{
 		Scheme:   "postgres",
@@ -111,7 +110,7 @@ func initPgDb(host string, port int, user, password, dbName string) (*sql.DB, er
 	dbConnection.SetConnMaxIdleTime(4 * time.Minute)
 	dbConnection.SetMaxOpenConns(50)
 
-	return dbConnection.DB, nil
+	return dbConnection, nil
 }
 
 // initLogger создает и настраивает новый экземпляр логгера
