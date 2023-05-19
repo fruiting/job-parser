@@ -2,14 +2,16 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"database/sql"
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
 
 	"fruiting/job-parser/internal"
+	"fruiting/job-parser/internal/api/http"
 	"fruiting/job-parser/internal/chatbothandler/telegram"
 	"fruiting/job-parser/internal/parser/headhunter"
 	"fruiting/job-parser/internal/pricesorter"
@@ -18,6 +20,7 @@ import (
 	"fruiting/job-parser/internal/storage/pgsql"
 	"github.com/adjust/redismq"
 	"github.com/jessevdk/go-flags"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -35,13 +38,26 @@ func main() {
 		log.Fatal(fatalJsonLog("Failed to init logger", err))
 	}
 
-	pool := redismq.CreateQueue(cfg.RedisHost, cfg.RedisPort, cfg.RedisPassword, 0, "parse_by_position_tasks_queue2")
-	consumer, err := pool.AddConsumer("parse_by_position_tasks_consumer2")
+	pool := redismq.CreateQueue(
+		cfg.RedisHost,
+		cfg.RedisPort,
+		cfg.RedisPassword,
+		0,
+		"parse_by_position_tasks_queue",
+	)
+	parseByPositionTaskProducer := queue.NewParseByPositionTaskProducer(pool)
+	consumer, err := pool.AddConsumer("parse_by_position_tasks_consumer")
 	if err != nil {
 		logger.Fatal("can't add consumer for redis queue", zap.Error(err))
 	}
 
+	//pgDb, err := initPgDb(cfg.PgDbHost, cfg.PgDbPort, cfg.PgDbUsername, cfg.PgDbPassword, cfg.PgDbName)
+	//if err != nil {
+	//	logger.Fatal("can't init pg db", zap.Error(err))
+	//}
+
 	pgsqlStorage := pgsql.NewStorage()
+	httpServer := http.NewServer(cfg.HttpListen, parseByPositionTaskProducer, pgsqlStorage, logger)
 	chatBotHandler := telegram.NewChatBotHandle(logger)
 	headHunterParser := headhunter.NewParser(logger)
 	generalParser := internal.NewGeneralParser(headHunterParser)
@@ -56,10 +72,6 @@ func main() {
 		logger,
 	)
 
-	payload := "asdas"
-	payloadJson, err := json.Marshal(payload)
-	err = pool.Put(string(payloadJson))
-
 	queueConsumer := internal.NewQueueConsumer([]internal.Consumer{
 		parseByPositionConsumer,
 	})
@@ -70,7 +82,36 @@ func main() {
 		queueConsumer.Run(context.Background())
 	}()
 
+	wg.Add(1)
+	go func() {
+		logger.Info("Starting public HTTP server")
+		err = httpServer.ListenAndServe()
+		if err != nil {
+			logger.Fatal("can't listen and serve http server", zap.Error(err))
+		}
+	}()
+
 	wg.Wait()
+}
+
+func initPgDb(host string, port int, user, password, dbName string) (*sql.DB, error) {
+	hostPort := fmt.Sprintf("%s:%d", host, port)
+	db := &url.URL{
+		Scheme:   "postgres",
+		User:     url.UserPassword(user, password),
+		Host:     hostPort,
+		RawQuery: fmt.Sprintf("database=%s", dbName),
+	}
+	dbConnection, err := sqlx.Open("pgx", db.String())
+	if err != nil {
+		return nil, fmt.Errorf("can't open pgsql db connection: %w", err)
+	}
+
+	dbConnection.SetConnMaxLifetime(6 * time.Minute)
+	dbConnection.SetConnMaxIdleTime(4 * time.Minute)
+	dbConnection.SetMaxOpenConns(50)
+
+	return dbConnection.DB, nil
 }
 
 // initLogger создает и настраивает новый экземпляр логгера

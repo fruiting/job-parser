@@ -9,20 +9,16 @@ import (
 	"time"
 
 	"fruiting/job-parser/internal"
-	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
 type Storage struct {
-	db     *sqlx.DB
+	db     *sql.DB
 	logger *zap.Logger
 }
 
-func NewStorage(db *sqlx.DB, logger *zap.Logger) *Storage {
-	return &Storage{
-		db:     db,
-		logger: logger,
-	}
+func NewStorage() *Storage {
+	return &Storage{}
 }
 
 func (s *Storage) Set(
@@ -67,7 +63,7 @@ func (s *Storage) Get(
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
-	row := s.db.QueryRowxContext(
+	row := s.db.QueryRowContext(
 		ctx,
 		"select * from some_procedure($1,$2,$3)",
 		positionName,
@@ -80,7 +76,7 @@ func (s *Storage) Get(
 	}
 
 	var raw dbJobsInfoResponse
-	err := row.StructScan(&raw)
+	err := row.Scan(&raw)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
