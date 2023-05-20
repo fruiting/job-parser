@@ -7,7 +7,7 @@ import (
 )
 
 //go:generate mockgen -source=queue_consumer.go -destination=./queue_consumer_mock.go -package=internal
-//go:generate easyjson -output_filename=./queue_easyjson.go
+//go:generate easyjson -output_filename=./queue_consumer_easyjson.go
 
 type RedisPool interface {
 	Put(payload string) error

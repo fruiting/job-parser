@@ -98,14 +98,14 @@ func (c *ParseByPositionTaskConsumer) Consume(ctx context.Context) {
 }
 
 func (c *ParseByPositionTaskConsumer) execute(ctx context.Context, payload *internal.ParseByPositionTask) error {
-	jobs, err := c.generalParser.Run(internal.Name(payload.PositionName))
+	jobs, err := c.generalParser.Run(payload.PositionName)
 	if err != nil {
 		return fmt.Errorf("can't parse: %w", err)
 	}
 
 	min, max, median := c.priceSorter.PricesFromJobs(jobs)
 	jobsInfo := &internal.JobsInfo{
-		PositionToParse: internal.Name(payload.PositionName),
+		PositionToParse: payload.PositionName,
 		MinSalary:       min,
 		MaxSalary:       max,
 		MedianSalary:    median,
@@ -126,7 +126,7 @@ func (c *ParseByPositionTaskConsumer) execute(ctx context.Context, payload *inte
 		return fmt.Errorf("can't set into storage: %w", err)
 	}
 
-	err = c.chatBotHandler.Push(jobsInfo)
+	err = c.chatBotHandler.Push(payload.ChatId, jobsInfo)
 	if err != nil {
 		return fmt.Errorf("can't push jobs info into chat bot handler: %w", err)
 	}

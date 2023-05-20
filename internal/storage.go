@@ -1,8 +1,8 @@
 package internal
 
-import "context"
-
 //go:generate mockgen -source=storage.go -destination=./storage_mock.go -package=internal
+
+import "context"
 
 // Storage for long-term info
 type Storage interface {

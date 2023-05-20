@@ -93,6 +93,7 @@ func main() {
 
 	wg.Add(1)
 	go func() {
+		//http.ListenAndServe(":8080", http.HandlerFunc(Handler))
 		logger.Info("Starting chat bot handle server")
 		err := chatBotHandler.ListenAndServe()
 		cancelFunc() // stop app if handle server was stopped

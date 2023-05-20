@@ -17,7 +17,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson5e1ce037DecodeFruitingJobParserInternal(in *jlexer.Lexer, out *ParseByPositionTask) {
+func easyjson62181af4DecodeFruitingJobParserInternal(in *jlexer.Lexer, out *ParseByPositionTask) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -36,8 +36,12 @@ func easyjson5e1ce037DecodeFruitingJobParserInternal(in *jlexer.Lexer, out *Pars
 			continue
 		}
 		switch key {
+		case "parser":
+			out.Parser = Parser(in.String())
+		case "chat_id":
+			out.ChatId = int64(in.Int64())
 		case "position_name":
-			out.PositionName = string(in.String())
+			out.PositionName = Name(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -48,13 +52,23 @@ func easyjson5e1ce037DecodeFruitingJobParserInternal(in *jlexer.Lexer, out *Pars
 		in.Consumed()
 	}
 }
-func easyjson5e1ce037EncodeFruitingJobParserInternal(out *jwriter.Writer, in ParseByPositionTask) {
+func easyjson62181af4EncodeFruitingJobParserInternal(out *jwriter.Writer, in ParseByPositionTask) {
 	out.RawByte('{')
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"position_name\":"
+		const prefix string = ",\"parser\":"
 		out.RawString(prefix[1:])
+		out.String(string(in.Parser))
+	}
+	{
+		const prefix string = ",\"chat_id\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.ChatId))
+	}
+	{
+		const prefix string = ",\"position_name\":"
+		out.RawString(prefix)
 		out.String(string(in.PositionName))
 	}
 	out.RawByte('}')
@@ -63,23 +77,23 @@ func easyjson5e1ce037EncodeFruitingJobParserInternal(out *jwriter.Writer, in Par
 // MarshalJSON supports json.Marshaler interface
 func (v ParseByPositionTask) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson5e1ce037EncodeFruitingJobParserInternal(&w, v)
+	easyjson62181af4EncodeFruitingJobParserInternal(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ParseByPositionTask) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson5e1ce037EncodeFruitingJobParserInternal(w, v)
+	easyjson62181af4EncodeFruitingJobParserInternal(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ParseByPositionTask) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson5e1ce037DecodeFruitingJobParserInternal(&r, v)
+	easyjson62181af4DecodeFruitingJobParserInternal(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ParseByPositionTask) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson5e1ce037DecodeFruitingJobParserInternal(l, v)
+	easyjson62181af4DecodeFruitingJobParserInternal(l, v)
 }
