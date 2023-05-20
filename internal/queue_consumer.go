@@ -25,7 +25,9 @@ type Consumer interface {
 
 //easyjson:json ParseByPositionTask
 type ParseByPositionTask struct {
-	PositionName string `json:"position_name"`
+	Parser       Parser `json:"parser"`
+	ChatId       int64  `json:"chat_id"`
+	PositionName Name   `json:"position_name"`
 }
 
 type QueueConsumer struct {

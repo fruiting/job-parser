@@ -4,14 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"net/url"
 	"strings"
 	"sync"
 	"time"
 
 	"fruiting/job-parser/internal"
-	httpinternal "fruiting/job-parser/internal/api/http"
-	"fruiting/job-parser/internal/api/http/api"
 	"fruiting/job-parser/internal/chatbothandler/telegram"
 	"fruiting/job-parser/internal/parser/headhunter"
 	"fruiting/job-parser/internal/pricesorter"
@@ -60,9 +59,15 @@ func main() {
 	}
 
 	pgsqlStorage := pgsql.NewStorage(pgDb, logger)
-	_ = api.NewFastHttpHandler(parseByPositionTaskProducer, pgsqlStorage, logger)
-	httpServer := httpinternal.NewServer(cfg.HttpListen, logger)
-	chatBotHandler := telegram.NewChatBotHandle(logger)
+	httpClient := &http.Client{}
+	chatBotHandler := telegram.NewChatBotHandler(
+		cfg.HttpListen,
+		httpClient,
+		cfg.TgApiKey,
+		parseByPositionTaskProducer,
+		pgsqlStorage,
+		logger,
+	)
 	headHunterParser := headhunter.NewParser(logger)
 	generalParser := internal.NewGeneralParser(headHunterParser)
 
@@ -88,11 +93,11 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		logger.Info("Starting public HTTP server")
-		err := httpServer.Serve()
-		cancelFunc() // stop app if http server was stopped
+		logger.Info("Starting chat bot handle server")
+		err := chatBotHandler.ListenAndServe()
+		cancelFunc() // stop app if handle server was stopped
 		if err != nil {
-			logger.Error("Error on listen and serve api HTTP server", zap.Error(err))
+			logger.Error("Error on listen and serve chat bot handle server", zap.Error(err))
 		}
 	}()
 

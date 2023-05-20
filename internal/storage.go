@@ -19,5 +19,6 @@ type Storage interface {
 		positionName Name,
 		fromYear uint16,
 		toYear uint16,
+		parser Parser,
 	) (*JobsInfo, error)
 }

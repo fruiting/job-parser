@@ -41,12 +41,16 @@ type SkillsSorter interface {
 	MostPopularSkills(jobs []*Job, count uint16) []string
 }
 
+type ChatBotCommand string
 type Parser string
 type Name string
 type Salary int32
 type skills []string
 
 const (
+	ParseJobsInfoChatBotCommand ChatBotCommand = "/parse_jobs_info"
+	GetJobsInfoChatBotCommand   ChatBotCommand = "/get_jobs_info"
+
 	HeadHunterParser Parser = "hh.ru"
 
 	MostPopularSkillsCount uint16 = 50
@@ -69,6 +73,20 @@ type JobsInfo struct {
 	Parser          Parser     `json:"parser"`
 	Jobs            []*Job     `json:"jobs"`
 	Time            *time.Time `json:"time"`
+}
+
+var whiteListParsers = []Parser{
+	HeadHunterParser,
+}
+
+func IsParserInWhiteList(parser Parser) bool {
+	for _, whiteListParser := range whiteListParsers {
+		if whiteListParser == parser {
+			return true
+		}
+	}
+
+	return false
 }
 
 type GeneralParser struct {

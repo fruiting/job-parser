@@ -35,18 +35,18 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockStorage) Get(ctx context.Context, positionName Name, fromYear, toYear uint16) (*JobsInfo, error) {
+func (m *MockStorage) Get(ctx context.Context, positionName Name, fromYear, toYear uint16, parser Parser) (*JobsInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, positionName, fromYear, toYear)
+	ret := m.ctrl.Call(m, "Get", ctx, positionName, fromYear, toYear, parser)
 	ret0, _ := ret[0].(*JobsInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockStorageMockRecorder) Get(ctx, positionName, fromYear, toYear interface{}) *gomock.Call {
+func (mr *MockStorageMockRecorder) Get(ctx, positionName, fromYear, toYear, parser interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStorage)(nil).Get), ctx, positionName, fromYear, toYear)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStorage)(nil).Get), ctx, positionName, fromYear, toYear, parser)
 }
 
 // Set mocks base method.

@@ -3,6 +3,7 @@
 init_web_hook_local() {
   API_KEY=$2
 
+  stop_web_hook_local
   ngrok http 8080 > /dev/null &
   touch ngrok_output.txt
   sleep 1

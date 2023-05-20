@@ -57,11 +57,13 @@ func (s *Storage) Get(
 	positionName internal.Name,
 	fromYear uint16,
 	toYear uint16,
+	parser internal.Parser,
 ) (*internal.JobsInfo, error) {
 	ctxLogger := s.logger.With(
 		zap.String("position_name", string(positionName)),
 		zap.Uint16("from_year", fromYear),
 		zap.Uint16("to_year", toYear),
+		zap.String("parser", string(parser)),
 	)
 
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
@@ -73,6 +75,7 @@ func (s *Storage) Get(
 		positionName,
 		fromYear,
 		toYear,
+		parser,
 	)
 	if row.Err() != nil {
 		s.logger.Error("can't get jobs info", zap.Error(row.Err()))
