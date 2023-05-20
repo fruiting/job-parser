@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"fruiting/job-parser/internal"
-	"fruiting/job-parser/internal/api/http"
+	httpinternal "fruiting/job-parser/internal/api/http"
+	"fruiting/job-parser/internal/api/http/api"
 	"fruiting/job-parser/internal/chatbothandler/telegram"
 	"fruiting/job-parser/internal/parser/headhunter"
 	"fruiting/job-parser/internal/pricesorter"
@@ -25,6 +26,9 @@ import (
 )
 
 func main() {
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	defer cancelFunc()
+
 	var cfg Config
 	parser := flags.NewParser(&cfg, flags.Default)
 	_, err := parser.Parse()
@@ -52,11 +56,12 @@ func main() {
 
 	pgDb, err := initPgDb(cfg.PgDbHost, cfg.PgDbPort, cfg.PgDbUsername, cfg.PgDbPassword, cfg.PgDbName)
 	if err != nil {
-		logger.Fatal("can't init pg db", zap.Error(err))
+		//logger.Fatal("can't init pg db", zap.Error(err))
 	}
 
 	pgsqlStorage := pgsql.NewStorage(pgDb, logger)
-	httpServer := http.NewServer(cfg.HttpListen, parseByPositionTaskProducer, pgsqlStorage, logger)
+	_ = api.NewFastHttpHandler(parseByPositionTaskProducer, pgsqlStorage, logger)
+	httpServer := httpinternal.NewServer(cfg.HttpListen, logger)
 	chatBotHandler := telegram.NewChatBotHandle(logger)
 	headHunterParser := headhunter.NewParser(logger)
 	generalParser := internal.NewGeneralParser(headHunterParser)
@@ -78,15 +83,16 @@ func main() {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		queueConsumer.Run(context.Background())
+		queueConsumer.Run(ctx)
 	}()
 
 	wg.Add(1)
 	go func() {
 		logger.Info("Starting public HTTP server")
-		err = httpServer.ListenAndServe()
+		err := httpServer.Serve()
+		cancelFunc() // stop app if http server was stopped
 		if err != nil {
-			logger.Fatal("can't listen and serve http server", zap.Error(err))
+			logger.Error("Error on listen and serve api HTTP server", zap.Error(err))
 		}
 	}()
 
