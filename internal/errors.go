@@ -3,6 +3,6 @@ package internal
 import "errors"
 
 var (
-	ErrDatabase = errors.New("database error, see log for more info")
+	DatabaseErr       = errors.New("database error, see log for more info")
+	InvalidCommandErr = errors.New("invalid command")
 )
-

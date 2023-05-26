@@ -126,10 +126,10 @@ func (c *ParseByPositionTaskConsumer) execute(ctx context.Context, payload *inte
 		return fmt.Errorf("can't set into storage: %w", err)
 	}
 
-	err = c.chatBotHandler.Push(payload.ChatId, jobsInfo)
-	if err != nil {
-		return fmt.Errorf("can't push jobs info into chat bot handler: %w", err)
-	}
+	//err = c.chatBotHandler.Push(payload.ChatId, jobsInfo)
+	//if err != nil {
+	//	return fmt.Errorf("can't push jobs info into chat bot handler: %w", err)
+	//}
 
 	return nil
 }

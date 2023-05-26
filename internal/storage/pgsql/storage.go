@@ -79,7 +79,7 @@ func (s *Storage) Get(
 	)
 	if row.Err() != nil {
 		s.logger.Error("can't get jobs info", zap.Error(row.Err()))
-		return nil, internal.ErrDatabase
+		return nil, internal.DatabaseErr
 	}
 
 	var raw dbJobsInfoResponse
@@ -90,13 +90,13 @@ func (s *Storage) Get(
 		}
 
 		ctxLogger.Error("can't scan raw to struct", zap.Error(err))
-		return nil, internal.ErrDatabase
+		return nil, internal.DatabaseErr
 	}
 
 	result, err := raw.mapToDomain()
 	if err != nil {
 		ctxLogger.Error("can't map jobs info to domain", zap.Error(err))
-		return nil, internal.ErrDatabase
+		return nil, internal.DatabaseErr
 	}
 
 	return result, nil

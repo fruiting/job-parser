@@ -106,10 +106,10 @@ func (s *storageSuite) TestGetQueryErr() {
 		).
 		WillReturnError(s.testErr)
 
-	resp, err := s.storage.Get(s.ctx, s.position, s.fromYear, s.toYear)
+	resp, err := s.storage.Get(s.ctx, s.position, s.fromYear, s.toYear, s.parser)
 
 	s.Equal(1, s.logs.FilterMessage("can't get jobs info").FilterField(zap.Error(s.testErr)).Len())
-	s.Equal(internal.ErrDatabase, err)
+	s.Equal(internal.DatabaseErr, err)
 	s.Nil(resp)
 }
 
@@ -123,7 +123,7 @@ func (s *storageSuite) TestGetNoRows() {
 		).
 		WillReturnRows(sqlmock.NewRows(s.columnRows))
 
-	resp, err := s.storage.Get(s.ctx, s.position, s.fromYear, s.toYear)
+	resp, err := s.storage.Get(s.ctx, s.position, s.fromYear, s.toYear, s.parser)
 
 	s.Equal(0, s.logs.FilterMessage("can't get jobs info").FilterField(zap.Error(s.testErr)).Len())
 	s.Nil(err)
@@ -152,10 +152,10 @@ func (s *storageSuite) TestGetStructScanErr() {
 				),
 		)
 
-	resp, err := s.storage.Get(s.ctx, s.position, s.fromYear, s.toYear)
+	resp, err := s.storage.Get(s.ctx, s.position, s.fromYear, s.toYear, s.parser)
 
 	s.Equal(1, s.logs.FilterMessage("can't scan raw to struct").Len())
-	s.Equal(internal.ErrDatabase, err)
+	s.Equal(internal.DatabaseErr, err)
 	s.Nil(resp)
 }
 
@@ -185,7 +185,7 @@ func (s *storageSuite) TestGetOk() {
 				),
 		)
 
-	resp, err := s.storage.Get(s.ctx, s.position, s.fromYear, s.toYear)
+	resp, err := s.storage.Get(s.ctx, s.position, s.fromYear, s.toYear, s.parser)
 
 	s.Equal(0, s.logs.FilterMessage("can't scan raw to struct").Len())
 	s.Nil(err)

@@ -7,7 +7,6 @@ import (
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
-	time "time"
 )
 
 // suppress unused package warning
@@ -37,15 +36,15 @@ func easyjsonF59a38b1DecodeFruitingJobParserInternal(in *jlexer.Lexer, out *Jobs
 			continue
 		}
 		switch key {
-		case "PositionToParse":
+		case "position_to_parse":
 			out.PositionToParse = Name(in.String())
-		case "MinSalary":
+		case "min_salary":
 			out.MinSalary = Salary(in.Int32())
-		case "MaxSalary":
+		case "max_salary":
 			out.MaxSalary = Salary(in.Int32())
-		case "MedianSalary":
+		case "median_salary":
 			out.MedianSalary = Salary(in.Int32())
-		case "PopularSkills":
+		case "popular_skills":
 			if in.IsNull() {
 				in.Skip()
 				out.PopularSkills = nil
@@ -68,9 +67,9 @@ func easyjsonF59a38b1DecodeFruitingJobParserInternal(in *jlexer.Lexer, out *Jobs
 				}
 				in.Delim(']')
 			}
-		case "Parser":
+		case "parser":
 			out.Parser = Parser(in.String())
-		case "Jobs":
+		case "jobs":
 			if in.IsNull() {
 				in.Skip()
 				out.Jobs = nil
@@ -101,17 +100,9 @@ func easyjsonF59a38b1DecodeFruitingJobParserInternal(in *jlexer.Lexer, out *Jobs
 				}
 				in.Delim(']')
 			}
-		case "Time":
-			if in.IsNull() {
-				in.Skip()
-				out.Time = nil
-			} else {
-				if out.Time == nil {
-					out.Time = new(time.Time)
-				}
-				if data := in.Raw(); in.Ok() {
-					in.AddError((*out.Time).UnmarshalJSON(data))
-				}
+		case "time":
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.Time).UnmarshalJSON(data))
 			}
 		default:
 			in.SkipRecursive()
@@ -128,27 +119,27 @@ func easyjsonF59a38b1EncodeFruitingJobParserInternal(out *jwriter.Writer, in Job
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"PositionToParse\":"
+		const prefix string = ",\"position_to_parse\":"
 		out.RawString(prefix[1:])
 		out.String(string(in.PositionToParse))
 	}
 	{
-		const prefix string = ",\"MinSalary\":"
+		const prefix string = ",\"min_salary\":"
 		out.RawString(prefix)
 		out.Int32(int32(in.MinSalary))
 	}
 	{
-		const prefix string = ",\"MaxSalary\":"
+		const prefix string = ",\"max_salary\":"
 		out.RawString(prefix)
 		out.Int32(int32(in.MaxSalary))
 	}
 	{
-		const prefix string = ",\"MedianSalary\":"
+		const prefix string = ",\"median_salary\":"
 		out.RawString(prefix)
 		out.Int32(int32(in.MedianSalary))
 	}
 	{
-		const prefix string = ",\"PopularSkills\":"
+		const prefix string = ",\"popular_skills\":"
 		out.RawString(prefix)
 		if in.PopularSkills == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
 			out.RawString("null")
@@ -164,12 +155,12 @@ func easyjsonF59a38b1EncodeFruitingJobParserInternal(out *jwriter.Writer, in Job
 		}
 	}
 	{
-		const prefix string = ",\"Parser\":"
+		const prefix string = ",\"parser\":"
 		out.RawString(prefix)
 		out.String(string(in.Parser))
 	}
 	{
-		const prefix string = ",\"Jobs\":"
+		const prefix string = ",\"jobs\":"
 		out.RawString(prefix)
 		if in.Jobs == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
 			out.RawString("null")
@@ -189,13 +180,9 @@ func easyjsonF59a38b1EncodeFruitingJobParserInternal(out *jwriter.Writer, in Job
 		}
 	}
 	{
-		const prefix string = ",\"Time\":"
+		const prefix string = ",\"time\":"
 		out.RawString(prefix)
-		if in.Time == nil {
-			out.RawString("null")
-		} else {
-			out.Raw((*in.Time).MarshalJSON())
-		}
+		out.Raw((in.Time).MarshalJSON())
 	}
 	out.RawByte('}')
 }

@@ -1,83 +1,48 @@
 package telegram
 
+//go:generate mockgen -source=chat_bot_handler.go -destination=./chat_bot_handler_mock.go -package=telegram
+
 import (
-	"bytes"
-	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"net/http"
+	"strconv"
 	"strings"
 
 	"fruiting/job-parser/internal"
-	"fruiting/job-parser/internal/queue"
 	"go.uber.org/zap"
 )
 
+type httpClient interface {
+	Post(url string, body []byte) error
+}
+
 const (
-	url string = "https://api.telegram.org/bot"
+	tgUrl          string = "https://api.telegram.org/bot"
+	sendMessageUrl string = "sendMessage"
 )
 
 type ChatBotHandler struct {
-	port                        string
-	client                      *http.Client
-	apiKey                      string
-	parseByPositionTaskProducer *queue.ParseByPositionTaskProducer
-	storage                     internal.Storage
-	logger                      *zap.Logger
+	client  httpClient
+	apiKey  string
+	storage internal.Storage
+	logger  *zap.Logger
 }
 
 func NewChatBotHandler(
-	port string,
-	client *http.Client,
+	client httpClient,
 	apiKey string,
-	parseByPositionTaskProducer *queue.ParseByPositionTaskProducer,
 	storage internal.Storage,
 	logger *zap.Logger,
 ) *ChatBotHandler {
 	return &ChatBotHandler{
-		port:                        port,
-		client:                      client,
-		apiKey:                      apiKey,
-		parseByPositionTaskProducer: parseByPositionTaskProducer,
-		storage:                     storage,
-		logger:                      logger,
+		client:  client,
+		apiKey:  apiKey,
+		storage: storage,
+		logger:  logger,
 	}
 }
 
-func (h *ChatBotHandler) ListenAndServe() error {
-	return http.ListenAndServe(h.port, http.HandlerFunc(h.handle))
-}
-
-func (h *ChatBotHandler) Push(chatId int64, jobsInfo *internal.JobsInfo) error {
-	parser := fmt.Sprintf("Parser: %s\n", jobsInfo.Parser)
-	position := fmt.Sprintf("Position: %s\n", jobsInfo.PositionToParse)
-	minSalary := fmt.Sprintf("MinSalary: %d\n", jobsInfo.MinSalary)
-	maxSalary := fmt.Sprintf("MaxSalary: %d\n", jobsInfo.MaxSalary)
-	medianSalary := fmt.Sprintf("MedianSalary: %d\n", jobsInfo.MedianSalary)
-	popularSkills := "Popular skills:\n"
-	for i, skill := range jobsInfo.PopularSkills {
-		popularSkills = popularSkills + fmt.Sprintf("%d) %s\n", i+1, skill)
-	}
-	text := parser + position + minSalary + maxSalary + medianSalary + popularSkills
-
-	err := h.sendMessage(chatId, text)
-	if err != nil {
-		return fmt.Errorf("can't send message: %w", err)
-	}
-
-	return nil
-}
-
-func (h *ChatBotHandler) handle(_ http.ResponseWriter, req *http.Request) {
-	body, err := io.ReadAll(req.Body)
-	if err != nil {
-		h.logger.Error("can't ready body", zap.Error(err))
-
-		return
-	}
-
+func (h *ChatBotHandler) ParseCommand(bodyRequest []byte) (*internal.ChatBotCommandInfo, error) {
 	var request struct {
 		Message struct {
 			Chat struct {
@@ -87,85 +52,45 @@ func (h *ChatBotHandler) handle(_ http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	err = json.Unmarshal(body, &request)
+	err := json.Unmarshal(bodyRequest, &request)
 	if err != nil {
-		h.logger.Error("can't unmarshal request", zap.Error(err))
-
-		return
+		return nil, fmt.Errorf("can't unmarshal request: %w", err)
 	}
-
-	ctxLogger := h.logger.With(zap.Any("request", request.Message.Text))
 
 	command := strings.Split(request.Message.Text, ";")
-	if !internal.IsParserInWhiteList(internal.Parser(command[1])) {
-		ctxLogger.Warn("requested parser is not in the white list", zap.String("parser", command[1]))
-		err = h.sendMessage(request.Message.Chat.Id, "requested parser is not in the white list")
-		if err != nil {
-			ctxLogger.Error("can't send message to chat bot", zap.Error(err))
+	if len(command) < 3 {
+		return nil, internal.InvalidCommandErr
+	}
+
+	commandInfo := &internal.ChatBotCommandInfo{
+		ChatId:   request.Message.Chat.Id,
+		Command:  internal.ChatBotCommand(command[0]),
+		Parser:   internal.Parser(command[1]),
+		Position: internal.Name(command[2]),
+	}
+	if command[0] == string(internal.GetJobsInfoChatBotCommand) {
+		if len(command) < 5 {
+			return nil, internal.InvalidCommandErr
 		}
 
-		return
-	}
-
-	if command[0] == string(internal.ParseJobsInfoChatBotCommand) {
-		err = h.parseJobsCommand(command, request.Message.Chat.Id)
-	} else if command[0] == string(internal.GetJobsInfoChatBotCommand) {
-		err = h.getJobsCommand(req.Context(), command, request.Message.Chat.Id)
-	} else {
-		err = h.sendMessage(request.Message.Chat.Id, "Invalid command")
-	}
-	if err != nil {
-		ctxLogger.Error("can't handle chat bot request", zap.Error(err))
-		err = h.sendMessage(request.Message.Chat.Id, "Whoops! Something went wrong. Check logs.")
+		fromYear, err := strconv.ParseUint(command[3], 10, 16)
 		if err != nil {
-			ctxLogger.Error("can't send message to chat bot", zap.Error(err))
+			return nil, fmt.Errorf("can't parse from_year: %w", err)
 		}
 
-		return
+		toYear, err := strconv.ParseUint(command[4], 10, 16)
+		if err != nil {
+			return nil, fmt.Errorf("can't parse to_year: %w", err)
+		}
+
+		commandInfo.FromYear = uint16(fromYear)
+		commandInfo.ToYear = uint16(toYear)
 	}
+
+	return commandInfo, nil
 }
 
-func (h *ChatBotHandler) parseJobsCommand(command []string, chatId int64) error {
-	payload := &internal.ParseByPositionTask{
-		Parser:       internal.Parser(command[1]),
-		ChatId:       chatId,
-		PositionName: internal.Name(command[2]),
-	}
-
-	err := h.parseByPositionTaskProducer.Produce(payload)
-	if err != nil {
-		return fmt.Errorf("can't produce message: %w", err)
-	}
-
-	err = h.sendMessage(
-		chatId,
-		fmt.Sprintf("Parsing `%s` is in progress. It may take some time...", command[2]),
-	)
-	if err != nil {
-		return fmt.Errorf("can't send message: %w", err)
-	}
-
-	return nil
-}
-
-func (h *ChatBotHandler) getJobsCommand(ctx context.Context, command []string, chatId int64) error {
-	jobsInfo, err := h.storage.Get(
-		ctx,
-		internal.Name(command[1]),
-		0, 0, internal.HeadHunterParser)
-	if err != nil {
-		return fmt.Errorf("can't get jobs info: %w", err)
-	}
-
-	err = h.Push(chatId, jobsInfo)
-	if err != nil {
-		return fmt.Errorf("can't push message: %w", err)
-	}
-
-	return nil
-}
-
-func (h *ChatBotHandler) sendMessage(chatId int64, text string) error {
+func (h *ChatBotHandler) SendMessage(chatId int64, text string) error {
 	type sendMessageBody struct {
 		ChatId int64  `json:"chat_id"`
 		Text   string `json:"text"`
@@ -180,16 +105,9 @@ func (h *ChatBotHandler) sendMessage(chatId int64, text string) error {
 		return fmt.Errorf("can't marshal msg: %w", err)
 	}
 
-	res, err := h.client.Post(
-		fmt.Sprintf("%s%s/sendMessage", url, h.apiKey),
-		"application/json",
-		bytes.NewBuffer(msgJson),
-	)
+	err = h.client.Post(fmt.Sprintf("%s%s/%s", tgUrl, h.apiKey, sendMessageUrl), msgJson)
 	if err != nil {
 		return fmt.Errorf("can't send message: %w", err)
-	}
-	if res.StatusCode != http.StatusOK {
-		return errors.New(fmt.Sprintf("unexpected status: %s", res.Status))
 	}
 
 	return nil

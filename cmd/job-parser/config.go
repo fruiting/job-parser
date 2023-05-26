@@ -18,4 +18,6 @@ type Config struct {
 	PgDbName     string `long:"pg-db-name" description:"PG DB name" env:"PG_DB_NAME"`
 
 	TgApiKey string `long:"tg-api-key" description:"Telegram api key" env:"TG_API_KEY"`
+
+	EnablePprof bool `long:"enable-pprof" description:"Enable pprof server" env:"ENABLE_PPROF"`
 }

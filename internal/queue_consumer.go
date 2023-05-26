@@ -1,13 +1,13 @@
 package internal
 
+//go:generate mockgen -source=queue_consumer.go -destination=./queue_consumer_mock.go -package=internal
+//go:generate easyjson -output_filename=./queue_consumer_easyjson.go
+
 import (
 	"context"
 
 	"github.com/adjust/redismq"
 )
-
-//go:generate mockgen -source=queue_consumer.go -destination=./queue_consumer_mock.go -package=internal
-//go:generate easyjson -output_filename=./queue_consumer_easyjson.go
 
 type RedisPool interface {
 	Put(payload string) error
@@ -41,9 +41,7 @@ func NewQueueConsumer(consumers []Consumer) *QueueConsumer {
 }
 
 func (p *QueueConsumer) Run(ctx context.Context) {
-	for {
-		for _, consumer := range p.consumers {
-			go consumer.Consume(ctx)
-		}
+	for _, consumer := range p.consumers {
+		go consumer.Consume(ctx)
 	}
 }
