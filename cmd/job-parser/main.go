@@ -5,28 +5,21 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"strings"
 	"sync"
 	"time"
 
 	"fruiting/job-parser/internal"
 	httpinternal "fruiting/job-parser/internal/api/http"
-	"fruiting/job-parser/internal/chatbothandler/telegram"
-	"fruiting/job-parser/internal/parser/headhunter"
-	"fruiting/job-parser/internal/pricesorter"
-	"fruiting/job-parser/internal/queue"
-	"fruiting/job-parser/internal/skillssorter"
-	"fruiting/job-parser/internal/storage/pgsql"
-	"github.com/adjust/redismq"
+	"fruiting/job-parser/internal/parser/hh"
+	"fruiting/job-parser/internal/parser/indeed"
 	"github.com/jessevdk/go-flags"
-	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 func main() {
-	ctx, cancelFunc := context.WithCancel(context.Background())
+	_, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 
 	var cfg Config
@@ -41,62 +34,18 @@ func main() {
 		log.Fatal(fatalJsonLog("Failed to init logger", err))
 	}
 
-	pool := redismq.CreateQueue(
-		cfg.RedisHost,
-		cfg.RedisPort,
-		cfg.RedisPassword,
-		0,
-		"parse_by_position_tasks_queue",
-	)
-	parseByPositionTaskProducer := queue.NewParseByPositionTaskProducer(pool)
-	consumer, err := pool.AddConsumer("parse_by_position_tasks_consumer")
-	if err != nil {
-		logger.Fatal("can't add consumer for redis queue", zap.Error(err))
-	}
-
-	pgDb, err := initPgDb(cfg.PgDbHost, cfg.PgDbPort, cfg.PgDbUsername, cfg.PgDbPassword, cfg.PgDbName)
-	if err != nil {
-		//logger.Fatal("can't init pg db", zap.Error(err))
-	}
-
-	pgsqlStorage := pgsql.NewStorage(pgDb, logger)
-
 	httpClient := &http.Client{}
-	httpInternalClient := httpinternal.NewClient(httpClient)
+	httpClientInternal := httpinternal.NewClient(httpClient)
 
-	chatBotHandler := telegram.NewChatBotHandler(
-		httpInternalClient,
-		cfg.TgApiKey,
-		pgsqlStorage,
-		logger,
-	)
-	chatBotProcessor := internal.NewChatBotProcessor(chatBotHandler, parseByPositionTaskProducer, pgsqlStorage)
+	hhParser := hh.NewParser()
+	_ = indeed.NewParser()
 
-	headHunterParser := headhunter.NewParser(logger)
-	generalParser := internal.NewGeneralParser(headHunterParser)
+	hhParserProcessor := internal.NewGeneralParser(hhParser, httpClientInternal)
+	hhParserProcessor.Run("golang developer")
 
-	parseByPositionConsumer := queue.NewParseByPositionTaskConsumer(
-		consumer,
-		pgsqlStorage,
-		chatBotHandler,
-		pricesorter.NewPriceSorter(),
-		skillssorter.NewSkillsSorter(),
-		generalParser,
-		logger,
-	)
-
-	httpServer := httpinternal.NewServer(cfg.HttpListen, chatBotProcessor, cfg.EnablePprof, logger)
-
-	queueConsumer := internal.NewQueueConsumer([]internal.Consumer{
-		parseByPositionConsumer,
-	})
+	httpServer := httpinternal.NewServer(cfg.HttpListen, cfg.EnablePprof, logger)
 
 	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		queueConsumer.Run(ctx)
-	}()
-
 	wg.Add(1)
 	go func() {
 		logger.Info("Starting http server", zap.String("port", cfg.HttpListen))
@@ -110,27 +59,22 @@ func main() {
 	wg.Wait()
 }
 
-func initPgDb(host string, port int, user, password, dbName string) (*sqlx.DB, error) {
-	hostPort := fmt.Sprintf("%s:%d", host, port)
-	db := &url.URL{
-		Scheme:   "postgres",
-		User:     url.UserPassword(user, password),
-		Host:     hostPort,
-		RawQuery: fmt.Sprintf("database=%s", dbName),
+func fatalJsonLog(msg string, err error) string {
+	escape := func(s string) string {
+		return strings.ReplaceAll(strings.ReplaceAll(s, `\`, `\\`), `"`, `\"`)
 	}
-	dbConnection, err := sqlx.Open("pgx", db.String())
+	errString := ""
 	if err != nil {
-		return nil, fmt.Errorf("can't open pgsql db connection: %w", err)
+		errString = err.Error()
 	}
-
-	dbConnection.SetConnMaxLifetime(6 * time.Minute)
-	dbConnection.SetConnMaxIdleTime(4 * time.Minute)
-	dbConnection.SetMaxOpenConns(50)
-
-	return dbConnection, nil
+	return fmt.Sprintf(
+		`{"level":"fatal","ts":"%s","msg":"%s","error":"%s"}`,
+		time.Now().Format(time.RFC3339),
+		escape(msg),
+		escape(errString),
+	)
 }
 
-// initLogger создает и настраивает новый экземпляр логгера
 func initLogger(logLevel string, isLogJson bool) (*zap.Logger, error) {
 	lvl := zap.InfoLevel
 	err := lvl.UnmarshalText([]byte(logLevel))
@@ -149,20 +93,4 @@ func initLogger(logLevel string, isLogJson bool) (*zap.Logger, error) {
 	}
 
 	return opts.Build()
-}
-
-func fatalJsonLog(msg string, err error) string {
-	escape := func(s string) string {
-		return strings.ReplaceAll(strings.ReplaceAll(s, `\`, `\\`), `"`, `\"`)
-	}
-	errString := ""
-	if err != nil {
-		errString = err.Error()
-	}
-	return fmt.Sprintf(
-		`{"level":"fatal","ts":"%s","msg":"%s","error":"%s"}`,
-		time.Now().Format(time.RFC3339),
-		escape(msg),
-		escape(errString),
-	)
 }

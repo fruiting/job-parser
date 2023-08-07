@@ -1,44 +1,33 @@
 package http
 
-//go:generate mockgen -source=server.go -destination=./server_mock.go -package=http
-
 import (
-	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/pprof"
 
 	"go.uber.org/zap"
 )
 
-type chatBotProcessor interface {
-	Process(ctx context.Context, body []byte) error
-}
-
-const pprofUrlPrefix = "/debug/pprof"
+const pprofUrlPrefix = "/debug/pprof/"
 
 type Server struct {
-	listen           string
-	chatBotProcessor chatBotProcessor
-	enablePprof      bool
-	logger           *zap.Logger
+	listen      string
+	enablePprof bool
+	logger      *zap.Logger
 }
 
-func NewServer(listen string, chatBotProcessor chatBotProcessor, enablePprof bool, logger *zap.Logger) *Server {
+func NewServer(listen string, enablePprof bool, logger *zap.Logger) *Server {
 	return &Server{
-		listen:           listen,
-		chatBotProcessor: chatBotProcessor,
-		enablePprof:      enablePprof,
-		logger:           logger,
+		listen:      listen,
+		enablePprof: enablePprof,
+		logger:      logger,
 	}
 }
 
 func (s *Server) ListenAndServe() error {
 	r := http.NewServeMux()
 
-	r.HandleFunc("/", s.handleChatBot)
-	r.HandleFunc("/api/v1/ping/", s.pong)
+	r.HandleFunc("/api/v1/ping/", s.ping)
 
 	if s.enablePprof {
 		r.HandleFunc(pprofUrlPrefix, pprof.Index)
@@ -51,21 +40,7 @@ func (s *Server) ListenAndServe() error {
 	return http.ListenAndServe(s.listen, r)
 }
 
-func (s *Server) handleChatBot(_ http.ResponseWriter, req *http.Request) {
-	body, err := io.ReadAll(req.Body)
-	if err != nil {
-		s.logger.Error("can't ready body", zap.Error(err))
-
-		return
-	}
-
-	err = s.chatBotProcessor.Process(req.Context(), body)
-	if err != nil {
-		s.logger.Error("can't process chat bot message", zap.Error(err))
-	}
-}
-
-func (s *Server) pong(w http.ResponseWriter, _h *http.Request) {
+func (s *Server) ping(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("PONG"))
 }
