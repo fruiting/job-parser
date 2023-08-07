@@ -5,9 +5,11 @@ package internal
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	httpinternal "fruiting/job-parser/internal/api/http"
+	"golang.org/x/net/html"
 )
 
 // JobsParser parses web-site
@@ -66,7 +68,7 @@ type ParsingProcessor struct {
 	httpClient *httpinternal.Client
 }
 
-func NewGeneralParser(parser JobsParser, httpClient *httpinternal.Client) *ParsingProcessor {
+func NewParsingProcessor(parser JobsParser, httpClient *httpinternal.Client) *ParsingProcessor {
 	return &ParsingProcessor{
 		parser:     parser,
 		httpClient: httpClient,
@@ -79,9 +81,13 @@ func (p *ParsingProcessor) Run(position Name) ([]*Job, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't get html from link `%s`: %w", link, err)
 	}
-	//todo
 
-	fmt.Println(resp)
+	_, err = html.Parse(strings.NewReader(string(resp)))
+	if err != nil {
+		return nil, fmt.Errorf("can't parse html: %w", err)
+	}
+
+	//todo work in progress...
 
 	return nil, nil
 }

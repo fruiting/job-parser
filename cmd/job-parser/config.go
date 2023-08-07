@@ -10,7 +10,10 @@ type Config struct {
 	RedisUsername string `long:"redis-username" description:"Redis username" env:"REDIS_USERNAME"`
 	RedisPassword string `long:"redis-password" description:"Redis password" env:"REDIS_PASSWORD"`
 
-	KafkaBroker string `long:"kafka-broker" description:"Kafka broker" env:"KAFKA_BROKER"`
+	KafkaBroker          string `long:"kafka-broker" description:"Kafka broker" env:"KAFKA_BROKER"`
+	KafkaMaxMessageBytes int    `long:"kafka-max-size-message" description:"Max size message for Kafka" env:"KAFKA_MAX_MESSAGE_BYTES" required:"true"`
+	KafkaMaxRetry        int    `long:"kafka-max-retry" description:"Max retry count to connect to Kafka" env:"KAFKA_MAX_RETRY" required:"true"`
+	KafkaTopicParseJob   string `long:"kafka-topic-parse-job" description:"Kafka parse job topic" env:"KAFKA_TOPIC_PARSE_JOB" required:"true"`
 
 	EnablePprof bool `long:"enable-pprof" description:"Enable pprof server" env:"ENABLE_PPROF"`
 }

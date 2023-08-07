@@ -13,13 +13,15 @@ import (
 	httpinternal "fruiting/job-parser/internal/api/http"
 	"fruiting/job-parser/internal/parser/hh"
 	"fruiting/job-parser/internal/parser/indeed"
-	"github.com/jessevdk/go-flags"
+	"fruiting/job-parser/internal/queue"
+	"fruiting/job-parser/internal/queue/kafka"
+	"github.com/IBM/sarama"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 func main() {
-	_, cancelFunc := context.WithCancel(context.Background())
+	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 
 	var cfg Config
@@ -40,8 +42,20 @@ func main() {
 	hhParser := hh.NewParser()
 	_ = indeed.NewParser()
 
-	hhParserProcessor := internal.NewGeneralParser(hhParser, httpClientInternal)
-	hhParserProcessor.Run("golang developer")
+	hhParsingProcessor := internal.NewParsingProcessor(hhParser, httpClientInternal)
+	//hhParsingProcessor.Run("golang developer")
+
+	kafkaConsumer, err := initKafkaConsumer(
+		cfg.KafkaBroker,
+		cfg.KafkaMaxRetry,
+		cfg.KafkaMaxMessageBytes,
+		[]string{cfg.KafkaTopicParseJob},
+		[]*internal.ParsingProcessor{hhParsingProcessor},
+		logger,
+	)
+	if err != nil {
+		logger.Fatal("can't init kafka consumer")
+	}
 
 	httpServer := httpinternal.NewServer(cfg.HttpListen, cfg.EnablePprof, logger)
 
@@ -53,6 +67,15 @@ func main() {
 		cancelFunc() // stop app if handle server was stopped
 		if err != nil {
 			logger.Error("Error on listen and serve http server", zap.Error(err))
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		logger.Info("Starting mq consumer", zap.String("port", cfg.HttpListen))
+		err := kafkaConsumer.Run(ctx)
+		if err != nil {
+			logger.Error("can't consume", zap.Error(err))
 		}
 	}()
 
@@ -93,4 +116,26 @@ func initLogger(logLevel string, isLogJson bool) (*zap.Logger, error) {
 	}
 
 	return opts.Build()
+}
+
+func initKafkaConsumer(
+	broker string,
+	maxRetry int,
+	maxMessageBytes int,
+	topics []string,
+	parsingProcessors []*internal.ParsingProcessor,
+	logger *zap.Logger,
+) (*kafka.Consumer, error) {
+	kafkaCfg := sarama.NewConfig()
+	kafkaCfg.Producer.Retry.Max = maxRetry
+	kafkaCfg.Producer.RequiredAcks = sarama.WaitForAll
+	kafkaCfg.Producer.Return.Successes = true
+	kafkaCfg.Producer.MaxMessageBytes = maxMessageBytes
+
+	cg, err := sarama.NewConsumerGroup([]string{broker}, "groupId", kafkaCfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed init kafka consumer: %w", err)
+	}
+
+	return kafka.NewConsumer(cg, topics, queue.NewConsumerHandler(parsingProcessors), logger), nil
 }
