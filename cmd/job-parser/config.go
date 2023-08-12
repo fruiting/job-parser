@@ -15,5 +15,7 @@ type Config struct {
 	KafkaMaxRetry        int    `long:"kafka-max-retry" description:"Max retry count to connect to Kafka" env:"KAFKA_MAX_RETRY" required:"true"`
 	KafkaTopicParseJob   string `long:"kafka-topic-parse-job" description:"Kafka parse job topic" env:"KAFKA_TOPIC_PARSE_JOB" required:"true"`
 
+	HhLinksPerPageBatchSize uint8 `long:"hh-links-per-page-batch-size" description:"HH links per page batch size" env:"HH_LINKS_PER_PAGE_BATCH_SIZE" required:"true"`
+
 	EnablePprof bool `long:"enable-pprof" description:"Enable pprof server" env:"ENABLE_PPROF"`
 }

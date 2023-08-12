@@ -11,11 +11,13 @@ import (
 
 	"fruiting/job-parser/internal"
 	httpinternal "fruiting/job-parser/internal/api/http"
+	goqueryinternal "fruiting/job-parser/internal/htmlparser/goquery"
 	"fruiting/job-parser/internal/parser/hh"
 	"fruiting/job-parser/internal/parser/indeed"
 	"fruiting/job-parser/internal/queue"
 	"fruiting/job-parser/internal/queue/kafka"
 	"github.com/IBM/sarama"
+	"github.com/jessevdk/go-flags"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -42,20 +44,21 @@ func main() {
 	hhParser := hh.NewParser()
 	_ = indeed.NewParser()
 
-	hhParsingProcessor := internal.NewParsingProcessor(hhParser, httpClientInternal)
-	//hhParsingProcessor.Run("golang developer")
+	htmlParser := goqueryinternal.NewHtmlParser()
+	hhParsingProcessor := internal.NewParsingProcessor(hhParser, httpClientInternal, htmlParser)
+	hhParsingProcessor.Run(ctx, []internal.Name{"golang developer"})
 
-	kafkaConsumer, err := initKafkaConsumer(
-		cfg.KafkaBroker,
-		cfg.KafkaMaxRetry,
-		cfg.KafkaMaxMessageBytes,
-		[]string{cfg.KafkaTopicParseJob},
-		[]*internal.ParsingProcessor{hhParsingProcessor},
-		logger,
-	)
-	if err != nil {
-		logger.Fatal("can't init kafka consumer")
-	}
+	//kafkaConsumer, err := initKafkaConsumer(
+	//	cfg.KafkaBroker,
+	//	cfg.KafkaMaxRetry,
+	//	cfg.KafkaMaxMessageBytes,
+	//	[]string{cfg.KafkaTopicParseJob},
+	//	[]*internal.ParsingProcessor{hhParsingProcessor},
+	//	logger,
+	//)
+	//if err != nil {
+	//	logger.Fatal("can't init kafka consumer")
+	//}
 
 	httpServer := httpinternal.NewServer(cfg.HttpListen, cfg.EnablePprof, logger)
 
@@ -73,10 +76,10 @@ func main() {
 	wg.Add(1)
 	go func() {
 		logger.Info("Starting mq consumer", zap.String("port", cfg.HttpListen))
-		err := kafkaConsumer.Run(ctx)
-		if err != nil {
-			logger.Error("can't consume", zap.Error(err))
-		}
+		//err := kafkaConsumer.Run(ctx)
+		//if err != nil {
+		//	logger.Error("can't consume", zap.Error(err))
+		//}
 	}()
 
 	wg.Wait()
