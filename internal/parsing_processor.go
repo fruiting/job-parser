@@ -1,23 +1,31 @@
 package internal
 
-//go:generate mockgen -source=parser.go -destination=./parser_mock.go -package=internal
 //go:generate easyjson -output_filename=./parsing_processor_easyjson.go
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"sync"
 	"time"
 
 	httpinternal "fruiting/job-parser/internal/api/http"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
 
 // JobsParser parses web-site
 type JobsParser interface {
+	Parser() Parser
+	BatchSize() uint8
 	Link(position Name, page uint16) string
+	MaxPage(r io.Reader) (uint16, error)
+	Links(r io.Reader) ([]string, error)
+	ParseForJobInfo(r io.Reader, keywords []string) (*Job, error)
 }
 
+type Link string
 type Parser string
 type Name string
 type Salary int32
@@ -29,25 +37,6 @@ const (
 
 	MostPopularSkillsCount uint16 = 50
 )
-
-type Job struct {
-	PositionName Name
-	Link         string
-	Salary       Salary
-	Skills       skills
-}
-
-//easyjson:json JobsInfo
-type JobsInfo struct {
-	PositionToParse Name      `json:"position_to_parse"`
-	MinSalary       Salary    `json:"min_salary"`
-	MaxSalary       Salary    `json:"max_salary"`
-	MedianSalary    Salary    `json:"median_salary"`
-	PopularSkills   skills    `json:"popular_skills"`
-	Parser          Parser    `json:"parser"`
-	Jobs            []*Job    `json:"jobs"`
-	Time            time.Time `json:"time"`
-}
 
 var whiteListParsers = []Parser{
 	HeadHunterParser,
@@ -64,27 +53,37 @@ func IsParserInWhiteList(parser Parser) bool {
 	return false
 }
 
+type positionLink struct {
+	position Name
+	link     Link
+}
+
 type ParsingProcessor struct {
 	parser     JobsParser
 	httpClient *httpinternal.Client
-	htmlParser HtmlParser
 	linksMap   map[string]struct{}
+	logger     *zap.Logger
 }
 
-func NewParsingProcessor(parser JobsParser, httpClient *httpinternal.Client, htmlParser HtmlParser) *ParsingProcessor {
+func NewParsingProcessor(parser JobsParser, httpClient *httpinternal.Client, logger *zap.Logger) *ParsingProcessor {
 	return &ParsingProcessor{
 		parser:     parser,
 		httpClient: httpClient,
-		htmlParser: htmlParser,
 		linksMap:   make(map[string]struct{}, 0),
+		logger:     logger,
 	}
 }
 
-func (p *ParsingProcessor) Run(ctx context.Context, positions []Name) ([]*Job, error) {
+func (p *ParsingProcessor) Run(ctx context.Context, positions []Name) (*JobsInfo, error) {
+	logger := p.logger.With(
+		zap.String("parser", string(p.parser.Parser())),
+		zap.Any("positions", positions),
+	)
+
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
-	linksCh := make(chan string)
+	linksCh := make(chan *positionLink)
 
 	group, ctx := errgroup.WithContext(ctx)
 	group.SetLimit(len(positions))
@@ -100,15 +99,58 @@ func (p *ParsingProcessor) Run(ctx context.Context, positions []Name) ([]*Job, e
 		})
 	}
 
-	for link := range linksCh {
+	jobsInfo := &JobsInfo{
+		PositionsToParse: positions,
+		Parser:           p.parser.Parser(),
+		Time:             time.Now(),
+	}
+	jobs := make([]*Job, 0, len(positions)*int(p.parser.BatchSize()))
+	var minSalary, maxSalary, medianSalary Salary
+	salaries := make(map[Salary]int64, 0)
+	mu := &sync.RWMutex{}
+
+L:
+	for {
 		select {
 		case <-ctx.Done():
-			//todo
-			fmt.Println("a")
-		default:
-		}
+			logger.Warn("ctx done when parsing")
+			break L
+		case val, ok := <-linksCh:
+			if val == nil || !ok {
+				logger.Info("finished looping through position links, channel is closed")
+				break L
+			}
 
-		fmt.Println(link)
+			ctxLogger := logger.With(zap.String("link", string(val.link)))
+			resp, err := p.downloadHtml(string(val.link))
+			if err != nil {
+				ctxLogger.Error("can't download html", zap.Error(err))
+				continue
+			}
+
+			r := bytes.NewBuffer(resp)
+			job, err := p.parser.ParseForJobInfo(r, []string{})
+			if err != nil {
+				ctxLogger.Error("can't parse for job info", zap.Error(err))
+				continue
+			}
+			job.Link = val.link
+
+			mu.Lock()
+			if job.Salary > maxSalary {
+				maxSalary = job.Salary
+			}
+			if job.Salary < minSalary {
+				minSalary = job.Salary
+			}
+			v, ok := salaries[job.Salary]
+			if !ok {
+			}
+			v++
+
+			jobs = append(jobs, job)
+			mu.Unlock()
+		}
 	}
 
 	err := group.Wait()
@@ -116,14 +158,18 @@ func (p *ParsingProcessor) Run(ctx context.Context, positions []Name) ([]*Job, e
 		return nil, fmt.Errorf("error when running through positions")
 	}
 
-	//todo work in progress...
+	jobsInfo.MinSalary = minSalary
+	jobsInfo.MaxSalary = maxSalary
+	jobsInfo.MedianSalary = medianSalary
+	jobsInfo.Jobs = jobs
 
-	return nil, nil
+	//todo calculate skills
+
+	return jobsInfo, nil
 }
 
-func (p *ParsingProcessor) runThroughPosition(position Name, linksCh chan string) error {
-	time.Sleep(3 * time.Second)
-	linksCh <- "siski"
+func (p *ParsingProcessor) runThroughPosition(position Name, linksCh chan *positionLink) error {
+	linksCh <- &positionLink{position: position, link: "https://hh.ru/vacancy/81841268?from=vacancy_search_list&query=golang%20developer"}
 	close(linksCh)
 	return nil
 	//resp, err := p.downloadHtml(position, 1)
@@ -179,11 +225,11 @@ func (p *ParsingProcessor) runThroughPosition(position Name, linksCh chan string
 	//}
 }
 
-func (p *ParsingProcessor) downloadHtml(position Name, page uint16) ([]byte, error) {
-	link := p.parser.Link(position, page)
+func (p *ParsingProcessor) downloadHtml(link string) ([]byte, error) {
+	//link := p.parser.Link(position, page)
 	resp, err := p.httpClient.Get(link)
 	if err != nil {
-		return resp, fmt.Errorf("can't get html from link `%s`: %w", link, err)
+		return resp, fmt.Errorf("can't get html from link: %w", err)
 	}
 
 	return resp, nil

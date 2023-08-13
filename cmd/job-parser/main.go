@@ -11,7 +11,6 @@ import (
 
 	"fruiting/job-parser/internal"
 	httpinternal "fruiting/job-parser/internal/api/http"
-	goqueryinternal "fruiting/job-parser/internal/htmlparser/goquery"
 	"fruiting/job-parser/internal/parser/hh"
 	"fruiting/job-parser/internal/parser/indeed"
 	"fruiting/job-parser/internal/queue"
@@ -41,11 +40,10 @@ func main() {
 	httpClient := &http.Client{}
 	httpClientInternal := httpinternal.NewClient(httpClient)
 
-	hhParser := hh.NewParser()
+	hhParser := hh.NewParser(cfg.HhLinksPerPageBatchSize)
 	_ = indeed.NewParser()
 
-	htmlParser := goqueryinternal.NewHtmlParser()
-	hhParsingProcessor := internal.NewParsingProcessor(hhParser, httpClientInternal, htmlParser)
+	hhParsingProcessor := internal.NewParsingProcessor(hhParser, httpClientInternal, logger)
 	hhParsingProcessor.Run(ctx, []internal.Name{"golang developer"})
 
 	//kafkaConsumer, err := initKafkaConsumer(
